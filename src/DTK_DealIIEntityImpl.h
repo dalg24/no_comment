@@ -8,6 +8,9 @@
 #include <Teuchos_ArrayView.hpp>
 #include <Teuchos_ParameterList.hpp>
 
+using namespace dealii;
+
+// Problem is that tria_accessor for vertices only exist in 1D 
 class DealIIEntityImpl : public DataTransferKit::EntityImpl
 {
   public:
@@ -29,7 +32,6 @@ class DealIIEntityImpl : public DataTransferKit::EntityImpl
     bool onBoundary( const int boundary_id ) const override;
 
     Teuchos::RCP<DataTransferKit::EntityExtraData> extraData() const override;
-
 };
 
 #endif
