@@ -1,7 +1,10 @@
 #include <no_comment/DTK_DealIIEntityImpl.h>
 
 
-DealIIEntityImpl<structdim,dim,spacedim>::DealIIEntityImpl()
+DealIIEntityImpl::DealIIEntityImpl(TriaAccessor<structdim,dim,spacedim> const &tria_accessor,
+    std::vector<CellAccessor<dim,spacedim>> const &cell_accessors) :
+  tria_accessor(tria_accessor),
+  cell_accessors(cell_accessors)
 {}
 
 
@@ -59,8 +62,7 @@ DealIIEntityImpl<dim,spacedim>::id() const
   // two different IDs.
   if (tria_accessor->structure_dimension == tria_accessor->dimension)
   {
-    CellAccessor cell_accessor(tria_accessor);
-    CellID cell_id = cell_accessor->id();
+    CellID cell_id = cell_accessors[0]->id();
 
     // The problem here is that we can't _unpack_ cell_id to compute entity_id.
   }
@@ -79,12 +81,10 @@ DealIIEntityImpl::ownerRank() const
 { 
   int subddomain_id = -1;
 
+  // TODO 
   // This information only exists for cells
   if (tria_accessor->structure_dimension == tria_accessor->dimension)
-  {
-    CellAccessor cell_accessor(tria_accessor);
-    subdomain_id = cell_accessor->subdomain_id(); 
-  }
+    subdomain_id = cell_accessors[0]->subdomain_id(); 
 
   return subdomain_id;
 }
@@ -108,7 +108,7 @@ DealIIEntityImpl::boundingBox( Teuchos::Tuple<double,6>& bounds ) const
   for (unsigned int i=0; i<space_dimension; ++i)
   {
     // To take care of the round-off and the exact definition of the center
-    // (should it be the barycenter or should we taked into account the
+    // (should it be the barycenter or should we take into account the
     // manifold?), the bounding is made 10% larger than it should be.
     bounds[i] = center[i] - .55*tria_accessor->extent_in_direction(i);
     bounds[i+3] = center[i] + .55*tria_accessor->extent_in_direction(i);
@@ -125,17 +125,15 @@ DealIIEntityImpl::boundingBox( Teuchos::Tuple<double,6>& bounds ) const
 
 bool
 DealIIEntityImpl::inBlock( const int block_id ) const
-{ 
-  bool in_block = false;
+{        
+  const types::material_id = static_cast<types::material_id>(block_id);
+  // This information only exists for cell. Thus, we loop over the cells that
+  // own the tria_accessor.
+  for (auto & cell_accessor : cell_accessors)
+    if (material_id == cell_accessor->material_id())
+      return true
 
-  // This information only exists for cell
-  if (tria_accessor->structure_dimension == tria_accessor->dimension)
-  {
-    CellAccessor cell_accessor(tria_accessor);
-    in_block = (static_cast<types::material_id>(block_id) == cell_accessor->material_id());
-  } 
-
-  return in_block; 
+  return false; 
 }
 
 
