@@ -56,7 +56,7 @@ DealIIEntityImpl<dim,spacedim>::id() const
   // TODO
   DataTransferKit::EntityId entity_id = 0;
 
-  // For cell the ID is unique bur for the other structures, the ID is unique
+  // For cell the ID is unique but for the other structures, the ID is unique
   // only for a given subdomain. Two different edges on different processors can
   // have the same ID and one edge shared by two different subdomains can have
   // two different IDs.
@@ -129,8 +129,8 @@ DealIIEntityImpl::inBlock( const int block_id ) const
   const types::material_id = static_cast<types::material_id>(block_id);
   // This information only exists for cell. Thus, we loop over the cells that
   // own the tria_accessor.
-  for (auto & cell_accessor : cell_accessors)
-    if (material_id == cell_accessor->material_id())
+  for (auto & cell : cell_accessors)
+    if (material_id == cell->material_id())
       return true
 
   return false; 
@@ -141,7 +141,48 @@ DealIIEntityImpl::inBlock( const int block_id ) const
 bool
 DealIIEntityImpl::onBoundary( const int boundary_id ) const
 { 
-  return (static_cast<types::boundary_id>(boundary_id) == tria_accessor->boundary_indicator()); 
+  bool on_boundary = false;
+  const types::boundary_id boundary_indicator = static_cast<types::boundary_id>(boundary_id);
+
+  // If tria_accessor is a volume or face, or an edge with dimension equals two,
+  // then we can use the boundary_indicator.
+  if ((tria_accessor->structure_dimension > 1) || 
+      ((tria_accessor->structure_dimension == 1) && (tria_accessor->dimension == 2)))
+    on_boundary = (boundary_indicator == tria_accessor->boundary_indicator()); 
+  else
+  {
+    if (tria_accessor->structure_dimension == 1)
+      for (auto & cell : cell_accessors)
+      {
+        // We need to loop over the faces because the information that we need
+        // does not exist on the edges.
+        for (unsigned int i=0; i<GeometryInfo<dim>::faces_per_cell; ++i)
+        {
+          for (unsigned int j=0; j<GeometryInfo<dim>::vertices_per_face; ++j)
+            //TODO need operator == for point and TriaAccessor<0,dim,spacedim>
+            if (cell->face(i)->vertex(j) == tria_accessor)
+              if (cell->face(i)->boundary_indicator == boundary_id)
+                return true;
+        }
+      }
+    else
+    {
+      for (auto & cell : cell_accessors)
+      {
+        // We need to loop over the faces because the information that we need
+        // does not exist on the edges.
+        for (unsigned int i=0; i<GeometryInfo<dim>::faces_per_cell; ++i)
+        {
+          for (unsigned int j=0; j<GeometryInfo<dim>::lines_per_face; ++j)
+            if (cell->face(i)->line(j) == tria_accessor)
+              if (cell->face(i)->boundary_indicator == boundary_id)
+                return true;
+        }
+      }
+    }
+  }
+
+  return on_boundary;
 }
 
 
