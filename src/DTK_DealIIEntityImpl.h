@@ -8,13 +8,10 @@
 #include <Teuchos_ArrayView.hpp>
 #include <Teuchos_ParameterList.hpp>
 
-using namespace dealii;
-
-// Problem is that tria_accessor for vertices only exist in 1D 
-// This probably won't work for 1D mesh.
 class DealIIEntityImpl : public DataTransferKit::EntityImpl
 {
   public:
+    typedef typename dealii::DoFHandler<dim,spacedim>::active_cell_iterator active_cell_iterator;
 
     DealIIEntityImpl();
 

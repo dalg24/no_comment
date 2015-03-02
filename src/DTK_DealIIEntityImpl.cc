@@ -1,10 +1,10 @@
 #include <no_comment/DTK_DealIIEntityImpl.h>
 
 
-DealIIEntityImpl::DealIIEntityImpl(TriaAccessor<structdim,dim,spacedim> const &tria_accessor,
-    std::vector<CellAccessor<dim,spacedim>> const &cell_accessors) :
+DealIIEntityImpl::DealIIEntityImpl(dealii::TriaAccessor<structdim,dim,spacedim> const &tria_accessor,
+    std::vector<active_cell_iterator> const &cell_iterators) :
   tria_accessor(tria_accessor),
-  cell_accessors(cell_accessors)
+  cell_iterators(cell_iterators)
 {}
 
 
@@ -13,7 +13,7 @@ DataTransferKit::EntityType
 DealIIEntityImpl::entityType() const
 { 
   DataTransferKit::EntityType entity_type;
-  switch(tria_accessor->structure_dimension)
+  switch(tria_accessor.structure_dimension)
   {
     case 0:
       {
@@ -53,22 +53,22 @@ DealIIEntityImpl::entityType() const
 DataTransferKit::EntityId
 DealIIEntityImpl<dim,spacedim>::id() const
 { 
-  // TODO
   DataTransferKit::EntityId entity_id = 0;
 
-  // For cell the ID is unique but for the other structures, the ID is unique
-  // only for a given subdomain. Two different edges on different processors can
-  // have the same ID and one edge shared by two different subdomains can have
-  // two different IDs.
   if (tria_accessor->structure_dimension == tria_accessor->dimension)
   {
-    CellID cell_id = cell_accessors[0]->id();
-
-    // The problem here is that we can't _unpack_ cell_id to compute entity_id.
+    // Index is unique for only for a given level on a given processor. The
+    // level is limited at 11 by p4est.
+    unsigned int n_levels = 12;
+    entity_id = ownerRank() * n_levels * (static_cast<unsigned int>(-1) + 1) +  
+      tria_accessor->level() * (static_cast<unsigned int>(-1) + 1) + 
+      tria_accessor->index();
   }
   else
   {
-    entity_id = tria_accessor->index();
+    // Two different edges on different processors can have the same index and 
+    // one edge shared by two different subdomains can have two different index.
+    entity_id = ownerRank() * (static_cast<unsigned int>(-1) + 1) + tria_accessor->index();
   }
 
   return entity_id; 
@@ -79,14 +79,8 @@ DealIIEntityImpl<dim,spacedim>::id() const
 int
 DealIIEntityImpl::ownerRank() const
 { 
-  int subddomain_id = -1;
-
-  // TODO 
   // This information only exists for cells
-  if (tria_accessor->structure_dimension == tria_accessor->dimension)
-    subdomain_id = cell_accessors[0]->subdomain_id(); 
-
-  return subdomain_id;
+  return cell_iterators[0]->subdomain_id(); 
 }
 
 
@@ -103,15 +97,13 @@ void
 DealIIEntityImpl::boundingBox( Teuchos::Tuple<double,6>& bounds ) const
 {
   const unsigned int space_dimension = tria_accessor->space_dimension;
-  Point<space_dimension> center = tria_accessor->barycenter();
+  dealii::Point<space_dimension> center = tria_accessor->center(true);
 
   for (unsigned int i=0; i<space_dimension; ++i)
   {
-    // To take care of the round-off and the exact definition of the center
-    // (should it be the barycenter or should we take into account the
-    // manifold?), the bounding is made 10% larger than it should be.
-    bounds[i] = center[i] - .55*tria_accessor->extent_in_direction(i);
-    bounds[i+3] = center[i] + .55*tria_accessor->extent_in_direction(i);
+    // Because of round-off the bounding box is made 5% larger than it should be.
+    bounds[i] = center[i] - .525*tria_accessor->extent_in_direction(i);
+    bounds[i+3] = center[i] + .525*tria_accessor->extent_in_direction(i);
   }
 
   for (unsigned int i=space_dimension; i<3; ++i)
@@ -126,10 +118,10 @@ DealIIEntityImpl::boundingBox( Teuchos::Tuple<double,6>& bounds ) const
 bool
 DealIIEntityImpl::inBlock( const int block_id ) const
 {        
-  const types::material_id = static_cast<types::material_id>(block_id);
+  const dealii::types::material_id = static_cast<dealii::types::material_id>(block_id);
   // This information only exists for cell. Thus, we loop over the cells that
   // own the tria_accessor.
-  for (auto & cell : cell_accessors)
+  for (auto & cell : cell_iterators)
     if (material_id == cell->material_id())
       return true
 
@@ -142,7 +134,8 @@ bool
 DealIIEntityImpl::onBoundary( const int boundary_id ) const
 { 
   bool on_boundary = false;
-  const types::boundary_id boundary_indicator = static_cast<types::boundary_id>(boundary_id);
+  const dealii::types::boundary_id boundary_indicator = 
+    static_cast<dealii::types::boundary_id>(boundary_id);
 
   // If tria_accessor is a volume or face, or an edge with dimension equals two,
   // then we can use the boundary_indicator.
@@ -152,13 +145,13 @@ DealIIEntityImpl::onBoundary( const int boundary_id ) const
   else
   {
     if (tria_accessor->structure_dimension == 1)
-      for (auto & cell : cell_accessors)
+      for (auto & cell : cell_iterators)
       {
         // We need to loop over the faces because the information that we need
         // does not exist on the edges.
-        for (unsigned int i=0; i<GeometryInfo<dim>::faces_per_cell; ++i)
+        for (unsigned int i=0; i<dealii::GeometryInfo<dim>::faces_per_cell; ++i)
         {
-          for (unsigned int j=0; j<GeometryInfo<dim>::vertices_per_face; ++j)
+          for (unsigned int j=0; j<dealii::GeometryInfo<dim>::vertices_per_face; ++j)
             //TODO need operator == for point and TriaAccessor<0,dim,spacedim>
             if (cell->face(i)->vertex(j) == tria_accessor)
               if (cell->face(i)->boundary_indicator == boundary_id)
@@ -167,13 +160,13 @@ DealIIEntityImpl::onBoundary( const int boundary_id ) const
       }
     else
     {
-      for (auto & cell : cell_accessors)
+      for (auto & cell : cell_iterators)
       {
         // We need to loop over the faces because the information that we need
         // does not exist on the edges.
-        for (unsigned int i=0; i<GeometryInfo<dim>::faces_per_cell; ++i)
+        for (unsigned int i=0; i<dealii::GeometryInfo<dim>::faces_per_cell; ++i)
         {
-          for (unsigned int j=0; j<GeometryInfo<dim>::lines_per_face; ++j)
+          for (unsigned int j=0; j<dealii::GeometryInfo<dim>::lines_per_face; ++j)
             if (cell->face(i)->line(j) == tria_accessor)
               if (cell->face(i)->boundary_indicator == boundary_id)
                 return true;
