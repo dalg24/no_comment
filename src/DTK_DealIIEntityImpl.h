@@ -1,35 +1,85 @@
 #ifndef DTK_DEALIIENTITYIMPL_HPP
 #define DTK_DEALIIENTITYIMPL_HPP
 
+#include <deal.II/grid/tria_accessor.h>
+
 #include <DTK_EntityImpl.hpp>
-#include <DTK_EntityExtraData.hpp>
 #include <DTK_Types.hpp>
 
 #include <Teuchos_ArrayView.hpp>
 #include <Teuchos_ParameterList.hpp>
 
+template <int structdim,int dim,int spacedim>
 class DealIIEntityImpl : public DataTransferKit::EntityImpl
 {
   public:
-    typedef typename dealii::DoFHandler<dim,spacedim>::active_cell_iterator active_cell_iterator;
 
-    DealIIEntityImpl();
+    DealIIEntityImpl(std::shared_ptr<dealii::TriaAccessor<structdim,dim,spacedim> const> tria_accessor);
 
-    DataTransferKit::EntityType entityType() const override;
-
+    /*!
+     * \brief Get the unique global identifier for the entity.
+     * \return A unique global identifier for the entity.
+     */
     DataTransferKit::EntityId id() const override;
     
+    /*!
+     * \brief Get the parallel rank that owns the entity.
+     * \return The parallel rank that owns the entity.
+     */
     int ownerRank() const override;
 
+    /*!
+     * \brief Return the topological dimension of the entity.  
+     *
+     * \return The topological dimension of the entity. Any parametric
+     * coordinates describing the entity will be of this dimension.
+     */
+    int topologicalDimension() const override;
+
+    /*!
+     * \brief Return the physical dimension of the entity.
+     * \return The physical dimension of the entity. Any physical coordinates
+     * describing the entity will be of this dimension.
+     */
     int physicalDimension() const override;
 
+    /*!
+     * \brief Return the Cartesian bounding box around an entity.
+     * \param bounds The bounds of the box
+     * (x_min,y_min,z_min,x_max,y_max,z_max).
+     */
     void boundingBox( Teuchos::Tuple<double,6>& bounds ) const override;
 
+    /*!
+     * \brief Determine if an entity is in the block with the given id.
+     */
     bool inBlock( const int block_id ) const override;
 
+    /*!
+     * \brief Determine if an entity is on the boundary with the given id.
+     */
     bool onBoundary( const int boundary_id ) const override;
 
+    /*!
+     * \brief Get the extra data on the entity.
+     */
     Teuchos::RCP<DataTransferKit::EntityExtraData> extraData() const override;
+
+    /*!
+     * \brief Provide a one line description of the object.
+     */
+    std::string description() const override
+    { return std::string("deal.II Entity"); }
+
+    /*!
+     * \brief Provide a verbose description of the object.
+     */
+    void describe(
+      	Teuchos::FancyOStream& out,
+      	const Teuchos::EVerbosityLevel verb_level ) const override;
+
+  private:
+    std::shared_ptr<dealii::TriaAccessor<structdim,dim,spacedim> const> dealii_tria_accessor;
 };
 
 #endif
