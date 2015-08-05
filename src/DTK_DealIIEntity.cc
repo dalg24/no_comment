@@ -1,7 +1,13 @@
+#include <no_comment/DTK_DealIIEntityImpl.h>
 #include <no_comment/DTK_DealIIEntity.h>
 
-DealIIEntity::
-DealIIEntity()
+template <int structdim,int dim,int spacedim>
+DealIIEntity<structdim,dim,spacedim>::
+DealIIEntity(std::shared_ptr<dealii::TriaAccessor<structdim,dim,spacedim> const> dealii_tria_accessor)
 {
-    std::cout<<"Hello world\n";
+    this->b_entity_impl = Teuchos::rcp(
+        new DealIIEntityImpl<structdim,dim,spacedim>(
+            dealii_tria_accessor) );
 }
+
+template class DealIIEntity<3,3,3>;
