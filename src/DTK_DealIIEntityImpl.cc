@@ -1,4 +1,5 @@
 #include <no_comment/DTK_DealIIEntityImpl.h>
+#include <deal.II/base/geometry_info.h>
 
 template <int structdim,int dim,int spacedim>
 DealIIEntityImpl<structdim,dim,spacedim>::
@@ -103,14 +104,19 @@ bool
 DealIIEntityImpl<structdim,dim,spacedim>::
 onBoundary( const int boundary_id ) const
 { 
-    // If tria_accessor is a volume or face, or an edge with dimension equals two,
-    // then we can use the boundary_indicator.
-    if ((structdim > 1) || 
-        ((structdim == 1) && (dim == 2)))
-        return (boundary_id == dealii_tria_accessor->boundary_id()); 
-    else
-    {
-        throw std::runtime_error("onBondary not implemented");
+    // if the entity is an element
+    if (structdim == dim) {
+        dealii::CellAccessor<dim,spacedim> deallii_cell_accessor(*dealii_tria_accessor);
+        // it is on the boundary boundary_id if any of its face is on it
+        for (int face = 0; face < dealii::GeometryInfo<dim>::faces_per_cell; ++face)
+            if (deallii_cell_accessor.face(face)->boundary_id() == boundary_id)
+                return true;
+        return false;
+    // if the entity is a face
+    } else if (structdim == dim-1) {
+        return (dealii_tria_accessor->boundary_id() == boundary_id);
+    } else {
+        throw std::runtime_error("onBondary not implemented for nodes");
     }
 }
 
