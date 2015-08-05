@@ -5,7 +5,7 @@
 
 #include <deal.II/fe/mapping.h>
 
-template <int dim,int spacedim>
+template <int structdim,int dim,int spacedim>
 class DealIIEntityLocalMap : public DataTransferKit::EntityLocalMap
 {
   public:
@@ -45,8 +45,8 @@ class DealIIEntityLocalMap : public DataTransferKit::EntityLocalMap
      * \return Return true if it is safe to map to the reference frame.
      */
     bool isSafeToMapToReferenceFrame(
-  const DataTransferKit::Entity& entity,
-  const Teuchos::ArrayView<const double>& physical_point ) const override;
+        const DataTransferKit::Entity& entity,
+        const Teuchos::ArrayView<const double>& physical_point ) const override;
 
     /*!
      * \brief (Reverse Map) Map a point to the reference space of an
