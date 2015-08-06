@@ -1,18 +1,16 @@
 #ifndef DTK_DEALIIENTITYIMPL_HPP
 #define DTK_DEALIIENTITYIMPL_HPP
 
-#include <deal.II/grid/tria_accessor.h>
-
+#include <no_comment/DTK_DealIIEntityExtraData.h>
 #include <DTK_EntityImpl.hpp>
 #include <DTK_Types.hpp>
-
 #include <Teuchos_ArrayView.hpp>
 #include <Teuchos_ParameterList.hpp>
 
 template <int structdim,int dim,int spacedim>
 class DealIIEntityImpl : public DataTransferKit::EntityImpl
 {
-  public:
+public:
 
     DealIIEntityImpl(std::shared_ptr<dealii::TriaAccessor<structdim,dim,spacedim> const> tria_accessor);
 
@@ -78,8 +76,8 @@ class DealIIEntityImpl : public DataTransferKit::EntityImpl
       	Teuchos::FancyOStream& out,
       	const Teuchos::EVerbosityLevel verb_level ) const override;
 
-  private:
-    std::shared_ptr<dealii::TriaAccessor<structdim,dim,spacedim> const> dealii_tria_accessor;
+private:
+    Teuchos::RCP<DealIIEntityExtraData<structdim,dim,spacedim>> extra_data;
 };
 
 #endif

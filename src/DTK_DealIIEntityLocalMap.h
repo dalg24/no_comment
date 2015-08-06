@@ -8,7 +8,7 @@
 template <int structdim,int dim,int spacedim>
 class DealIIEntityLocalMap : public DataTransferKit::EntityLocalMap
 {
-  public:
+public:
 
     DealIIEntityLocalMap(std::shared_ptr<dealii::Mapping<dim,spacedim> const> mapping);
 
@@ -109,7 +109,7 @@ class DealIIEntityLocalMap : public DataTransferKit::EntityLocalMap
         const Teuchos::ArrayView<const double>& reference_point,
         const Teuchos::ArrayView<double>& normal ) const override;
 
-  private:
+private:
     std::shared_ptr<dealii::Mapping<dim,spacedim> const> dealii_mapping;
 };
 

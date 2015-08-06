@@ -16,8 +16,8 @@ measure( const DataTransferKit::Entity& entity ) const
 {
     Teuchos::RCP<DealIIEntityExtraData<structdim,dim,spacedim>> extra_data
         = Teuchos::rcp_dynamic_cast<DealIIEntityExtraData<structdim,dim,spacedim>>(entity.extraData());
-    auto deallii_tria_accessor = extra_data->dealii_tria_accessor;
-    return deallii_tria_accessor->measure();
+    auto dealii_tria_accessor = extra_data->dealii_tria_accessor;
+    return dealii_tria_accessor->measure();
 }
 
 
@@ -31,9 +31,9 @@ centroid(
 {
     Teuchos::RCP<DealIIEntityExtraData<structdim,dim,spacedim>> extra_data
         = Teuchos::rcp_dynamic_cast<DealIIEntityExtraData<structdim,dim,spacedim>>(entity.extraData());
-    auto deallii_tria_accessor = extra_data->dealii_tria_accessor;
+    auto dealii_tria_accessor = extra_data->dealii_tria_accessor;
     dealii::Point<structdim> center_point =
-        deallii_tria_accessor->center(true);
+        dealii_tria_accessor->center(true);
     for (int d = 0; d < structdim; ++d)
         centroid[d] = center_point[d];
 }
@@ -70,14 +70,14 @@ mapToReferenceFrame(
 {
     Teuchos::RCP<DealIIEntityExtraData<structdim,dim,spacedim>> extra_data
         = Teuchos::rcp_dynamic_cast<DealIIEntityExtraData<structdim,dim,spacedim>>(entity.extraData());
-    auto deallii_tria_accessor = extra_data->dealii_tria_accessor;
+    auto dealii_tria_accessor = extra_data->dealii_tria_accessor;
     dealii::Point<spacedim> pointInPhysicalFrame;
     for (int d = 0; d < spacedim; ++d)
         pointInPhysicalFrame[d] = physical_point[d];
 
     try {
         dealii::Point<spacedim> pointInReferenceFrame =
-            dealii_mapping->transform_real_to_unit_cell(*deallii_tria_accessor, pointInPhysicalFrame);
+            dealii_mapping->transform_real_to_unit_cell(*dealii_tria_accessor, pointInPhysicalFrame);
     
         for (int d = 0; d < spacedim; ++d)
             reference_point[d] = pointInReferenceFrame[d];
@@ -126,13 +126,13 @@ mapToPhysicalFrame(
 {
     Teuchos::RCP<DealIIEntityExtraData<structdim,dim,spacedim>> extra_data
         = Teuchos::rcp_dynamic_cast<DealIIEntityExtraData<structdim,dim,spacedim>>(entity.extraData());
-    auto deallii_tria_accessor = extra_data->dealii_tria_accessor;
+    auto dealii_tria_accessor = extra_data->dealii_tria_accessor;
     dealii::Point<spacedim> pointInReferenceFrame;
     for (int d = 0; d < spacedim; ++d)
         pointInReferenceFrame[d] = reference_point[d];
 
     dealii::Point<spacedim> pointInPhysicalFrame =
-        dealii_mapping->transform_unit_to_real_cell(*deallii_tria_accessor, pointInReferenceFrame);
+        dealii_mapping->transform_unit_to_real_cell(*dealii_tria_accessor, pointInReferenceFrame);
 
     for (int d = 0; d < spacedim; ++d)
         physical_point[d] = pointInPhysicalFrame[d];
@@ -149,5 +149,9 @@ normalAtReferencePoint(
     const Teuchos::ArrayView<const double>& reference_point,
     const Teuchos::ArrayView<double>& normal ) const
 {
-   throw  std::runtime_error("DealIIEntityLocalMap::normalAtReferencePoint(...) not implemented");
+    std::ignore = entity;
+    std::ignore = parent_entity;
+    std::ignore = reference_point;
+    std::ignore = normal;
+    throw  std::runtime_error("DealIIEntityLocalMap::normalAtReferencePoint(...) not implemented");
 }
