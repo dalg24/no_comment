@@ -44,9 +44,9 @@ centroid(
     Teuchos::RCP<DealIIEntityExtraData<structdim,dim,spacedim>> extra_data
         = Teuchos::rcp_dynamic_cast<DealIIEntityExtraData<structdim,dim,spacedim>>(entity.extraData());
     auto dealii_tria_accessor = extra_data->dealii_tria_accessor;
-    dealii::Point<structdim> center_point =
+    dealii::Point<spacedim> center_point =
         dealii_tria_accessor->center(true);
-    for (int d = 0; d < structdim; ++d)
+    for (int d = 0; d < spacedim; ++d)
         centroid[d] = center_point[d];
 }
 
