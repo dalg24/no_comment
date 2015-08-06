@@ -10,6 +10,18 @@ DealIIEntityLocalMap(std::shared_ptr<dealii::Mapping<dim,spacedim> const> mappin
 
 
 template <int structdim,int dim,int spacedim>
+void
+DealIIEntityLocalMap<structdim,dim,spacedim>::
+setParameters( const Teuchos::ParameterList& parameters )
+{
+    std::ignore = parameters;
+    // not implemented
+    // probably want to read tolerances here
+}
+
+
+
+template <int structdim,int dim,int spacedim>
 double
 DealIIEntityLocalMap<structdim,dim,spacedim>::
 measure( const DataTransferKit::Entity& entity ) const
@@ -52,8 +64,8 @@ isSafeToMapToReferenceFrame(
     Teuchos::Tuple<double,6> bounding_box;
     entity.boundingBox(bounding_box);
     for (int d = 0; d < structdim; ++d)
-        if ((physical_point[d] < bounding_box[0*dim+0])
-            || (bounding_box[1*dim+0] < physical_point[d]))
+        if ((physical_point[d] < bounding_box[0*dim+d])
+            || (bounding_box[1*dim+d] < physical_point[d]))
         return false;
     return true;
 }
@@ -70,14 +82,15 @@ mapToReferenceFrame(
 {
     Teuchos::RCP<DealIIEntityExtraData<structdim,dim,spacedim>> extra_data
         = Teuchos::rcp_dynamic_cast<DealIIEntityExtraData<structdim,dim,spacedim>>(entity.extraData());
-    auto dealii_tria_accessor = extra_data->dealii_tria_accessor;
+    auto dealii_cell_accessor = extra_data->dealii_tria_accessor;
+    dealii::TriaIterator<dealii::CellAccessor<dim,spacedim>> dealii_tria_accessor(*dealii_cell_accessor);
     dealii::Point<spacedim> pointInPhysicalFrame;
     for (int d = 0; d < spacedim; ++d)
         pointInPhysicalFrame[d] = physical_point[d];
 
     try {
         dealii::Point<spacedim> pointInReferenceFrame =
-            dealii_mapping->transform_real_to_unit_cell(*dealii_tria_accessor, pointInPhysicalFrame);
+            dealii_mapping->transform_real_to_unit_cell(dealii_tria_accessor, pointInPhysicalFrame);
     
         for (int d = 0; d < spacedim; ++d)
             reference_point[d] = pointInReferenceFrame[d];
@@ -104,14 +117,12 @@ checkPointInclusion(
     const Teuchos::ArrayView<const double>& reference_point ) const
 {
     std::ignore = entity;
+    dealii::Point<structdim> referencePoint;
     for (int d = 0; d < spacedim; ++d)
-        if ((reference_point[d] < 0.0)
-            || (1.0 > reference_point[d]))
-            return false;
-    return true;
-    // @Bruno: we probably want to use
-    //     dealii::GeometryInfo<dim>::is_inside_unit_cell( const Point< dim > &  p, const double eps ) 
-    // @Stu: don't we have a tolerance as well
+        referencePoint[d] = reference_point[d];
+    // NOTE: use set parameters...
+    double const epsilon = 1.0e-10;
+    return dealii::GeometryInfo<dim>::is_inside_unit_cell(referencePoint, epsilon);
 }
 
 
@@ -126,13 +137,14 @@ mapToPhysicalFrame(
 {
     Teuchos::RCP<DealIIEntityExtraData<structdim,dim,spacedim>> extra_data
         = Teuchos::rcp_dynamic_cast<DealIIEntityExtraData<structdim,dim,spacedim>>(entity.extraData());
-    auto dealii_tria_accessor = extra_data->dealii_tria_accessor;
+    auto dealii_cell_accessor = extra_data->dealii_tria_accessor;
+    dealii::TriaIterator<dealii::CellAccessor<dim,spacedim>> dealii_tria_accessor(*dealii_cell_accessor);
     dealii::Point<spacedim> pointInReferenceFrame;
     for (int d = 0; d < spacedim; ++d)
         pointInReferenceFrame[d] = reference_point[d];
 
     dealii::Point<spacedim> pointInPhysicalFrame =
-        dealii_mapping->transform_unit_to_real_cell(*dealii_tria_accessor, pointInReferenceFrame);
+        dealii_mapping->transform_unit_to_real_cell(dealii_tria_accessor, pointInReferenceFrame);
 
     for (int d = 0; d < spacedim; ++d)
         physical_point[d] = pointInPhysicalFrame[d];
@@ -155,3 +167,5 @@ normalAtReferencePoint(
     std::ignore = normal;
     throw  std::runtime_error("DealIIEntityLocalMap::normalAtReferencePoint(...) not implemented");
 }
+
+template class DealIIEntityLocalMap<3,3,3>;

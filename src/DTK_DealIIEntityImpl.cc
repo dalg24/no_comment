@@ -26,8 +26,8 @@ id() const
         // level is limited at 11 by p4est.
         unsigned int n_levels = 12;
         entity_id = this->ownerRank() * n_levels * (static_cast<unsigned int>(-1) + 1) +  
-          dealii_tria_accessor->level() * (static_cast<unsigned int>(-1) + 1) + 
-          dealii_tria_accessor->index();
+            dealii_tria_accessor->level() * (static_cast<unsigned int>(-1) + 1) + 
+            dealii_tria_accessor->index();
     }
     else
     {
