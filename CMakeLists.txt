@@ -52,6 +52,7 @@ ADD_LIBRARY(no_comment
     src/DTK_DealIIEntity.cc
     src/DTK_DealIIEntityImpl.cc
     src/DTK_DealIIEntityLocalMap.cc
+    src/DTK_DealIIAdjacencies.cc
     )
 ENABLE_TESTING()
 ADD_SUBDIRECTORY(test)
