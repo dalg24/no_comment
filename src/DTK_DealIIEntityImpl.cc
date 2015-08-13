@@ -3,7 +3,7 @@
 
 template <int structdim,int dim,int spacedim>
 DealIIEntityImpl<structdim,dim,spacedim>::
-DealIIEntityImpl(std::shared_ptr<dealii::TriaAccessor<structdim,dim,spacedim> const> tria_accessor)
+DealIIEntityImpl(dealii::TriaAccessor<structdim,dim,spacedim> const & tria_accessor)
 : extra_data(Teuchos::rcp(new DealIIEntityExtraData<structdim,dim,spacedim>(tria_accessor)))
 {}
 
@@ -26,8 +26,8 @@ id() const
         // level is limited at 11 by p4est.
         unsigned int n_levels = 12;
         entity_id = this->ownerRank() * n_levels * (static_cast<unsigned int>(-1) + 1) +  
-            dealii_tria_accessor->level() * (static_cast<unsigned int>(-1) + 1) + 
-            dealii_tria_accessor->index();
+            dealii_tria_accessor.level() * (static_cast<unsigned int>(-1) + 1) + 
+            dealii_tria_accessor.index();
     }
     else
     {
@@ -47,7 +47,7 @@ ownerRank() const
     auto dealii_tria_accessor =
         Teuchos::rcp_dynamic_cast<DealIIEntityExtraData<structdim,dim,spacedim>>
             (extra_data)->dealii_tria_accessor;
-    dealii::CellAccessor<dim,spacedim> dealii_cell_accessor(*dealii_tria_accessor);
+    dealii::CellAccessor<dim,spacedim> dealii_cell_accessor(dealii_tria_accessor);
     return dealii_cell_accessor.subdomain_id();
 }
 
@@ -81,13 +81,13 @@ boundingBox( Teuchos::Tuple<double,6>& bounds ) const
     auto dealii_tria_accessor =
         Teuchos::rcp_dynamic_cast<DealIIEntityExtraData<structdim,dim,spacedim>>
             (extra_data)->dealii_tria_accessor;
-    dealii::Point<spacedim> center = dealii_tria_accessor->center(true);
+    dealii::Point<spacedim> center = dealii_tria_accessor.center(true);
   
     for (unsigned int i=0; i<spacedim; ++i)
     {
         // Because of round-off the bounding box is made 5% larger than it should be.
-        bounds[i] = center[i] - .5*dealii_tria_accessor->extent_in_direction(i);
-        bounds[i+3] = center[i] + .5*dealii_tria_accessor->extent_in_direction(i);
+        bounds[i] = center[i] - .5*dealii_tria_accessor.extent_in_direction(i);
+        bounds[i+3] = center[i] + .5*dealii_tria_accessor.extent_in_direction(i);
     }
 }
 
@@ -102,7 +102,7 @@ inBlock( const int block_id ) const
         Teuchos::rcp_dynamic_cast<DealIIEntityExtraData<structdim,dim,spacedim>>
             (extra_data)->dealii_tria_accessor;
     if (dim == structdim) {
-        dealii::CellAccessor<dim,spacedim> dealii_cell_accessor(*dealii_tria_accessor);
+        dealii::CellAccessor<dim,spacedim> dealii_cell_accessor(dealii_tria_accessor);
         return (dealii_cell_accessor.material_id() == block_id);
     } else {
         throw std::runtime_error("inBlock not implemented for faces and nodes");
@@ -121,7 +121,7 @@ onBoundary( const int boundary_id ) const
             (extra_data)->dealii_tria_accessor;
     // if the entity is an element
     if (structdim == dim) {
-        dealii::CellAccessor<dim,spacedim> dealii_cell_accessor(*dealii_tria_accessor);
+        dealii::CellAccessor<dim,spacedim> dealii_cell_accessor(dealii_tria_accessor);
         // it is on the boundary boundary_id if any of its face is on it
         for (unsigned int face = 0; face < dealii::GeometryInfo<dim>::faces_per_cell; ++face)
             if (dealii_cell_accessor.face(face)->boundary_id() == boundary_id)
@@ -129,7 +129,7 @@ onBoundary( const int boundary_id ) const
         return false;
     // if the entity is a face
     } else if (structdim == dim-1) {
-        return (dealii_tria_accessor->boundary_id() == boundary_id);
+        return (dealii_tria_accessor.boundary_id() == boundary_id);
     } else {
         throw std::runtime_error("onBondary not implemented for nodes");
     }

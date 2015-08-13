@@ -22,8 +22,7 @@ BOOST_AUTO_TEST_CASE( test_DealIIEntity )
         true);
 
     auto tria_iterator =
-        std::make_shared<dealii::TriaAccessor<structdim,dim,spacedim>>(
-            *tria.begin_active() );
+            *tria.begin_active();
 
     // Create a dtk entity for the single volume element in the mesh
     DataTransferKit::Entity dtk_entity =

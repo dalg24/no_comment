@@ -8,7 +8,7 @@ template <int structdim,int dim,int spacedim>
 class DealIIEntity : public DataTransferKit::Entity
 {
 public:
-    DealIIEntity(std::shared_ptr<dealii::TriaAccessor<structdim,dim,spacedim> const> dealii_tria_accessor);
+    DealIIEntity(dealii::TriaAccessor<structdim,dim,spacedim> const & dealii_tria_accessor);
 
 };
 

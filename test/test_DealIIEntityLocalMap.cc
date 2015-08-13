@@ -22,8 +22,7 @@ BOOST_AUTO_TEST_CASE( test_DealIIEntityLocalMap )
         true);
 
     auto dealii_tria_iterator =
-        std::make_shared<dealii::TriaAccessor<structdim,dim,spacedim>>(
-            *dealii_tria.begin_active() );
+            *dealii_tria.begin_active();
 
     // Create a dtk entity for the single volume element in the mesh
     DataTransferKit::Entity dtk_entity =
@@ -62,7 +61,7 @@ BOOST_AUTO_TEST_CASE( test_DealIIEntityLocalMap )
     Teuchos::Array<double> ref_good_point(spacedim);
     dtk_entity_local_map->mapToReferenceFrame(dtk_entity, good_point(), ref_good_point());
     for (unsigned int vertex = 0; vertex < dealii::GeometryInfo<dim>::vertices_per_cell; ++vertex)
-        std::cout<<"vertex "<<vertex<<": "<<dealii_tria_iterator->vertex(vertex)<<"\n";
+        std::cout<<"vertex "<<vertex<<": "<<dealii_tria_iterator.vertex(vertex)<<"\n";
     // NOTE: I did ``1 - eta'' because of the cell orientation
     BOOST_CHECK_CLOSE( ref_good_point[0], 1.0 - 0.15, percent_tolerance );
     BOOST_CHECK_CLOSE( ref_good_point[1], 1.0 - 0.05, percent_tolerance );

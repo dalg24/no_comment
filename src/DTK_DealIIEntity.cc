@@ -3,7 +3,7 @@
 
 template <int structdim,int dim,int spacedim>
 DealIIEntity<structdim,dim,spacedim>::
-DealIIEntity(std::shared_ptr<dealii::TriaAccessor<structdim,dim,spacedim> const> dealii_tria_accessor)
+DealIIEntity(dealii::TriaAccessor<structdim,dim,spacedim> const & dealii_tria_accessor)
 {
     this->b_entity_impl = Teuchos::rcp(
         new DealIIEntityImpl<structdim,dim,spacedim>(

@@ -12,7 +12,7 @@ class DealIIEntityImpl : public DataTransferKit::EntityImpl
 {
 public:
 
-    DealIIEntityImpl(std::shared_ptr<dealii::TriaAccessor<structdim,dim,spacedim> const> tria_accessor);
+    DealIIEntityImpl(dealii::TriaAccessor<structdim,dim,spacedim> const & tria_accessor);
 
     /*!
      * \brief Get the unique global identifier for the entity.
