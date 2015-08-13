@@ -10,7 +10,7 @@ DealIIAdjacencies<dim,spacedim>::
 DealIIAdjacencies(std::shared_ptr<dealii::Triangulation<dim,spacedim> const> tria)
 : dealii_tria(tria)
 {
-    // checking dtk has not change its typedef
+    // checking that dtk has not change its typedef
     static_assert(
         std::is_same<DataTransferKit::EntityId,long unsigned int>::value,
         "dtk entity type is not unsigned long int anymore...");
@@ -25,7 +25,7 @@ DealIIAdjacencies(std::shared_ptr<dealii::Triangulation<dim,spacedim> const> tri
     auto const cell_end   = dealii_tria->end();
     for (auto cell = cell_begin; cell != cell_end; ++cell)
     {
-        auto dtk_elem =
+        auto elem =
             std::make_shared<DealIIEntity<dim,dim,spacedim>>(*cell);
         ss<<cell->id();
         // convert dealii id into unsigned long int
@@ -36,13 +36,12 @@ DealIIAdjacencies(std::shared_ptr<dealii::Triangulation<dim,spacedim> const> tri
         unsigned int id_size = std::stoul(dealii_cell_id.substr(underscore+1,colon-underscore-1));
         long unsigned int id = std::stoul(dealii_cell_id.substr(colon+1));
         std::ignore = id_size;
-        // TODO:
         if (id > std::numeric_limits<unsigned int>::max())
-            throw std::runtime_error("need to come up with another way of encoding dealii ids");
-        DataTransferKit::EntityId dtk_id =
+            throw std::runtime_error("fix me");
+        DataTransferKit::EntityId elem_id =
             static_cast<long unsigned int>(coarse_cell_id) << std::numeric_limits<unsigned int>::digits | id;
 
-        elem_id_map.emplace(dtk_id, dtk_elem);
+        elem_id_map.emplace(elem_id, elem);
 
         // empty the string stream
         ss.clear();
