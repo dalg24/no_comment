@@ -10,8 +10,8 @@ class DealIIAdjacencies
 public:
     DealIIAdjacencies(std::shared_ptr<dealii::Triangulation<dim,spacedim> const> tria);
 
-    std::shared_ptr<DealIIEntity<dim,dim,spacedim>> getNodeById(DataTransferKit::EntityId const id) const;
-    std::shared_ptr<DealIIEntity<0  ,dim,spacedim>> getElemById(DataTransferKit::EntityId const id) const;
+    std::shared_ptr<DealIIEntity<0,dim,spacedim>> getNodeById(DataTransferKit::EntityId const id) const;
+    std::shared_ptr<DealIIEntity<dim,dim,spacedim>> getElemById(DataTransferKit::EntityId const id) const;
 private:
     std::unordered_map<
         DataTransferKit::EntityId,
