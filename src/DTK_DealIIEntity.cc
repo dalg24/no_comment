@@ -10,4 +10,6 @@ DealIIEntity(dealii::TriaAccessor<structdim,dim,spacedim> const & dealii_tria_ac
             dealii_tria_accessor) );
 }
 
+template class DealIIEntity<2,2,2>;
+template class DealIIEntity<2,2,3>;
 template class DealIIEntity<3,3,3>;

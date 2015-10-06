@@ -164,5 +164,7 @@ describe(
     os << "spacedim: " << spacedim << std::endl;
     os << "---" << std::endl;
 }
+template class DealIIEntityImpl<2,2,2>;
+template class DealIIEntityImpl<2,2,3>;
 template class DealIIEntityImpl<3,3,3>;
 

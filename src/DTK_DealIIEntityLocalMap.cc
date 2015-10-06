@@ -89,10 +89,10 @@ mapToReferenceFrame(
         pointInPhysicalFrame[d] = physical_point[d];
 
     try {
-        dealii::Point<spacedim> pointInReferenceFrame =
+        dealii::Point<dim> pointInReferenceFrame =
             dealii_mapping->transform_real_to_unit_cell(dealii_tria_accessor, pointInPhysicalFrame);
     
-        for (int d = 0; d < spacedim; ++d)
+        for (int d = 0; d < dim; ++d)
             reference_point[d] = pointInReferenceFrame[d];
 
         return true;
@@ -139,8 +139,8 @@ mapToPhysicalFrame(
         = Teuchos::rcp_dynamic_cast<DealIIEntityExtraData<structdim,dim,spacedim>>(entity.extraData());
     auto dealii_cell_accessor = extra_data->dealii_tria_accessor;
     dealii::TriaIterator<dealii::CellAccessor<dim,spacedim>> dealii_tria_accessor(dealii_cell_accessor);
-    dealii::Point<spacedim> pointInReferenceFrame;
-    for (int d = 0; d < spacedim; ++d)
+    dealii::Point<dim> pointInReferenceFrame;
+    for (int d = 0; d < dim; ++d)
         pointInReferenceFrame[d] = reference_point[d];
 
     dealii::Point<spacedim> pointInPhysicalFrame =
@@ -168,4 +168,6 @@ normalAtReferencePoint(
     throw  std::runtime_error("DealIIEntityLocalMap::normalAtReferencePoint(...) not implemented");
 }
 
+template class DealIIEntityLocalMap<2,2,2>;
+template class DealIIEntityLocalMap<2,2,3>;
 template class DealIIEntityLocalMap<3,3,3>;
