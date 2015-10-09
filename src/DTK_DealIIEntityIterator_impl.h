@@ -1,11 +1,11 @@
 #ifndef DTK_DEALIIENTITYITERATOR_IMPL_H
 #define DTK_DEALIIENTITYITERATOR_IMPL_H
 
-#include <types_traits>
+#include <type_traits>
 #include <no_comment/DTK_DealIIEntity.h>
 
 template <typename DealIIGeomIterator,int dim,int spacedim>
-DealIIEntityIterator<DealIIGeomIterator>::DealIIEntityIterator()
+DealIIEntityIterator<DealIIGeomIterator,dim,spacedim>::DealIIEntityIterator()
 {
   this->b_iterator_impl = nullptr;
 }
@@ -16,9 +16,9 @@ DealIIEntityIterator<DealIIGeomIterator,dim,spacedim>::DealIIEntityIterator(
     DealIIGeomIterator dealii_iterator,
     DealIIGeomIterator dealii_iterator_begin,
     DealIIGeomIterator dealii_iterator_end,
-    Teuchos::Ptr<dealii::Triangulation<dim,spacedim> & const dealii_mesh,
-    Teuchos::Ptr<dealii::DealIIAdjacencies> & const adjacencies,
-    std::function<bool(DataTransferKit::Entity)> & const predicate)
+    Teuchos::Ptr<dealii::Triangulation<dim,spacedim>> const &dealii_mesh,
+    Teuchos::Ptr<DealIIAdjacencies<dim,spacedim>> const &adjacencies,
+    PredicateFunction const &predicate)
   :
     d_dealii_iterator(dealii_iterator),
     d_dealii_iterator_begin(dealii_iterator_begin),
@@ -34,7 +34,7 @@ DealIIEntityIterator<DealIIGeomIterator,dim,spacedim>::DealIIEntityIterator(
 template <typename DealIIGeomIterator,int dim,int spacedim>
 DealIIEntityIterator<DealIIGeomIterator,dim,spacedim>&
 DealIIEntityIterator<DealIIGeomIterator,dim,spacedim>::operator=(
-    DealIIEntityIterator<DealIIGeomIterator> const & rhs)
+    DealIIEntityIterator<DealIIGeomIterator,dim,spacedim> const & rhs)
 {
   this->b_iterator_impl = nullptr;
   this->b_predicate = rhs.b_predicate;
@@ -52,7 +52,7 @@ DealIIEntityIterator<DealIIGeomIterator,dim,spacedim>::operator=(
 
 template <typename DealIIGeomIterator,int dim,int spacedim>
 DataTransferKit::EntityIterator &
-DealIIEntityIterator<DealIIGeomIterator>::operator++()
+DealIIEntityIterator<DealIIGeomIterator,dim,spacedim>::operator++()
 {
   ++d_dealii_iterator;
 
@@ -62,11 +62,11 @@ DealIIEntityIterator<DealIIGeomIterator>::operator++()
 
 template <typename DealIIGeomIterator,int dim,int spacedim>
 DataTransferKit::Entity*
-DealIIEntityIterator<DealIIGeomIterator>::operator->(void)
+DealIIEntityIterator<DealIIGeomIterator,dim,spacedim>::operator->(void)
 {
   d_current_entity = DealIIEntity<
     typename std::remove_pointer<
-    typename DealIIGeomIterator::value_type>::type> (
+    typename DealIIGeomIterator::value_type> (
         Teuchos::ptr(*d_dealii_iterator), d_dealii_mesh, d_adjacencies);
 
   return &d_current_entity;

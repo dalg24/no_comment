@@ -3,7 +3,7 @@
 
 #include "DTK_DealIIAdjacencies.h"
 #include "DTK_DealIIEntity.h"
-#include "DTK_DealIIEntityExtraData.hpp"
+#include "DTK_DealIIEntityExtraData.h"
 
 #include <DTK_EntitySet.hpp>
 #include <DTK_Types.hpp>
@@ -42,9 +42,9 @@ class DealIIEntitySet : public DataTransferKit::EntitySet
     { return std::string("deal.II Mesh"); }
 
   private:
-    Teuchos::RCP<dealii::Triangulation> d_dealii_triangulation;
+    Teuchos::RCP<dealii::Triangulation<dim,spacedim>> d_dealii_triangulation;
 
-    Teuchos::RCP<DealIIAdjacencies> d_adjacencies;
+    Teuchos::RCP<DealIIAdjacencies<dim,spacedim>> d_adjacencies;
 };
 
 #endif

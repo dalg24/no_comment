@@ -7,7 +7,7 @@
 #include <Teuchos_Ptr.hpp>
 
 template <typename DealIIGeomIterator,int dim,int spacedim>
-class DealIIEntityIterator : public DataTranskertKit::EntityIterator
+class DealIIEntityIterator : public DataTransferKit::EntityIterator
 {
   public:
     DealIIEntityIterator();
@@ -16,14 +16,14 @@ class DealIIEntityIterator : public DataTranskertKit::EntityIterator
         DealIIGeomIterator dealii_iterator,
         DealIIGeomIterator dealii_iterator_begin,
         DealIIGeomIterator dealii_iterator_end,
-        Teuchos::Ptr<dealii:Triangulation<dim,spacedim> & const dealii_mesh,
-        Teuchos::Pth<DealIIAdjacencies> & adjacencies,
-        std::function<bool(DataTransferKit::Entity)> &predicate);
+        Teuchos::Ptr<dealii::Triangulation<dim,spacedim>> const &dealii_mesh,
+        Teuchos::Ptr<DealIIAdjacencies<dim,spacedim>> const &adjacencies,
+        PredicateFunction const &predicate);
 
-    DealIIEntityIterator(DealIIEntityIterator<DealIIGeomIterator> & const rhs);
+    DealIIEntityIterator(DealIIEntityIterator<DealIIGeomIterator,dim,spacedim> const &rhs);
 
-    DealIIEntityIterator<DealIIGeomIterator> &
-      operator= (DealIIEntityIterator<DealIIGeomIterator> & const rhs);
+    DealIIEntityIterator<DealIIGeomIterator,dim,spacedim> &
+      operator= (DealIIEntityIterator<DealIIGeomIterator,dim,spacedim> const &rhs);
 
     ~DealIIEntityIterator();
 
@@ -31,7 +31,11 @@ class DealIIEntityIterator : public DataTranskertKit::EntityIterator
 
     DataTransferKit::Entity& operator*(void) override;
 
-    bool operator!= (DataTransferKit::EntityIterator & const rhs) const override;
+    DataTransferKit::Entity* operator->(void) override;
+
+    bool operator== (DataTransferKit::EntityIterator const &rhs) const override;
+
+    bool operator!= (DataTransferKit::EntityIterator const &rhs) const override;
 
     DataTransferKit::EntityIterator begin() const override;
 
@@ -44,7 +48,7 @@ class DealIIEntityIterator : public DataTranskertKit::EntityIterator
     DealIIGeomIterator d_dealii_iterator_begin;
     DealIIGeomIterator d_dealii_iterator_end;
     Teuchos::Ptr<dealii::Triangulation<dim,spacedim>> d_dealii_mesh;
-    Teuchos::Ptr<DealIIAdjacencies> d_adjacencies;
+    Teuchos::Ptr<DealIIAdjacencies<dim,spacedim>> d_adjacencies;
     DataTransferKit::Entity d_current_entity;
 };
 
