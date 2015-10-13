@@ -18,7 +18,7 @@ DealIIEntityIterator<DealIIGeomIterator,dim,spacedim>::DealIIEntityIterator(
     DealIIGeomIterator dealii_iterator_end,
     Teuchos::Ptr<dealii::Triangulation<dim,spacedim>> const &dealii_mesh,
     Teuchos::Ptr<DealIIAdjacencies<dim,spacedim>> const &adjacencies,
-    PredicateFunction const &predicate)
+    DataTransferKit::PredicateFunction const &predicate)
   :
     d_dealii_iterator(dealii_iterator),
     d_dealii_iterator_begin(dealii_iterator_begin),
@@ -66,8 +66,8 @@ DealIIEntityIterator<DealIIGeomIterator,dim,spacedim>::operator->(void)
 {
   d_current_entity = DealIIEntity<
     typename std::remove_pointer<
-    typename DealIIGeomIterator::value_type> (
-        Teuchos::ptr(*d_dealii_iterator), d_dealii_mesh, d_adjacencies);
+      typename DealIIGeomIterator::value_type>::type
+    >( Teuchos::ptr(*d_dealii_iterator), d_dealii_mesh, d_adjacencies);
 
   return &d_current_entity;
 }
@@ -75,7 +75,7 @@ DealIIEntityIterator<DealIIGeomIterator,dim,spacedim>::operator->(void)
 
 template <typename DealIIGeomIterator,int dim,int spacedim>
 bool DealIIEntityIterator<DealIIGeomIterator,dim,spacedim>::operator==(
-    DataTransferKit::EntityIterator const &)
+    DataTransferKit::EntityIterator const &rhs) const
 {
   DealIIEntityIterator const* rhs_it = 
     static_cast<DealIIEntityIterator const*>(&rhs);
@@ -88,7 +88,7 @@ bool DealIIEntityIterator<DealIIGeomIterator,dim,spacedim>::operator==(
 
 template <typename DealIIGeomIterator,int dim,int spacedim>
 bool DealIIEntityIterator<DealIIGeomIterator,dim,spacedim>::operator!=(
-    DataTransferKit::EntityIterator & const rhs) const
+    DataTransferKit::EntityIterator const & rhs) const
 {
   DealIIEntityIterator const* rhs_it =
     static_cast<DealIIEntityIterator const*>(&rhs);
@@ -100,7 +100,8 @@ bool DealIIEntityIterator<DealIIGeomIterator,dim,spacedim>::operator!=(
 
 
 template <typename DealIIGeomIterator,int dim,int spacedim>
-DataTransferKit::EntityIterator<DealIIGeomIterator,dim,spacedim>::begin() const
+DataTransferKit::EntityIterator
+DealIIEntityIterator<DealIIGeomIterator,dim,spacedim>::begin() const
 {
   return DealIIEntityIterator(d_dealii_iterator_begin,
       d_dealii_iterator_begin,
@@ -128,7 +129,7 @@ DealIIEntityIterator<DealIIGeomIterator,dim,spacedim>::end() const
 
 template <typename DealIIGeomIterator,int dim,int spacedim>
 DataTransferKit::EntityIterator*
-DealIIEntityIterator<DealIIGeomIterator,int dim,int spacedim>::clone() const
+DealIIEntityIterator<DealIIGeomIterator,dim,spacedim>::clone() const
 {
   return new DealIIEntityIterator(*this);
 }

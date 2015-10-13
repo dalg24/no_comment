@@ -18,7 +18,7 @@ class DealIIEntityIterator : public DataTransferKit::EntityIterator
         DealIIGeomIterator dealii_iterator_end,
         Teuchos::Ptr<dealii::Triangulation<dim,spacedim>> const &dealii_mesh,
         Teuchos::Ptr<DealIIAdjacencies<dim,spacedim>> const &adjacencies,
-        PredicateFunction const &predicate);
+        DataTransferKit::PredicateFunction const &predicate);
 
     DealIIEntityIterator(DealIIEntityIterator<DealIIGeomIterator,dim,spacedim> const &rhs);
 

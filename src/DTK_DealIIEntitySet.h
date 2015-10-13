@@ -25,7 +25,7 @@ class DealIIEntitySet : public DataTransferKit::EntitySet
 
     int physicalDimension() const override;
 
-    void getEntity(const DataTransferKit::Entity entity_id,
+    void getEntity(const DataTransferKit::EntityId entity_id,
                    const int topological_dimension,
                    DataTransferKit::Entity& entity) const override;
 
