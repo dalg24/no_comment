@@ -64,9 +64,9 @@ template <typename DealIIGeomIterator,int dim,int spacedim>
 DataTransferKit::Entity*
 DealIIEntityIterator<DealIIGeomIterator,dim,spacedim>::operator->(void)
 {
+  // This will probably not work but it compiles which is the most important :-)
   d_current_entity = DealIIEntity<
-    typename std::remove_pointer<
-      typename DealIIGeomIterator::value_type>::type
+         DealIIGeomIterator::structdim,dim,spacedim
     >( Teuchos::ptr(*d_dealii_iterator), d_dealii_mesh, d_adjacencies);
 
   return &d_current_entity;
