@@ -1,6 +1,175 @@
 #include <no_comment/DTK_DealIIEntityImpl.h>
 #include <deal.II/base/geometry_info.h>
 
+
+
+// Partial specilization of a function is forbiddent, so we delegue the work to
+// some classes that can be specialized
+namespace internal
+{
+  template <int structdim,int dim,int spacedim> struct entity_id;
+  template <int dim,int spacedim> struct entity_id<0,dim,spacedim>;
+
+  template <int structdim,int dim,int spacedim>
+  struct Entity
+  {
+    static DataTransferKit::EntityId id(
+        Teuchos::RCP<DealIIEntityExtraData<structdim,dim,spacedim>> extra_data)
+    {
+      auto dealii_tria_accessor =
+        Teuchos::rcp_dynamic_cast<DealIIEntityExtraData<structdim,dim,spacedim>>
+            (extra_data)->dealii_tria_accessor;
+      DataTransferKit::EntityId entity_id = 0;
+
+      if (structdim == dim) 
+      {
+        dealii::CellAccessor<dim,spacedim> dealii_cell_accessor(dealii_tria_accessor);
+        std::string cell_id = dealii_cell_accessor.id().to_string();
+        const unsigned int cell_id_size = cell_id.size();
+        for (unsigned int i=0; i<cell_id.size(); ++i)
+          entity_id = (static_cast<int>(cell_id[i])<<
+              static_cast<int>(std::pow(8,cell_id_size-(i+1)))) | entity_id;
+      }
+      else
+        throw std::runtime_error("entity_id not implemented for faces");
+
+      return entity_id; 
+    }
+    
+
+
+    static int ownerRank(Teuchos::RCP<DealIIEntityExtraData<structdim,dim,spacedim>> extra_data)
+    {
+      auto dealii_tria_accessor =
+        Teuchos::rcp_dynamic_cast<DealIIEntityExtraData<structdim,dim,spacedim>>
+        (extra_data)->dealii_tria_accessor;
+
+      if (structdim == dim)
+      {
+        dealii::CellAccessor<dim,spacedim> dealii_cell_accessor(dealii_tria_accessor);
+        return dealii_cell_accessor.subdomain_id();
+      }
+      else
+        throw std::runtime_error("entity_id not implemented for faces");
+    }
+
+
+
+    static bool inBlock(const int block_id,
+        Teuchos::RCP<DealIIEntityExtraData<structdim,dim,spacedim>> extra_data)
+    {
+      auto dealii_tria_accessor =
+        Teuchos::rcp_dynamic_cast<DealIIEntityExtraData<structdim,dim,spacedim>>
+        (extra_data)->dealii_tria_accessor;
+
+      if (structdim == dim)
+      {
+        dealii::CellAccessor<dim,spacedim> dealii_cell_accessor(dealii_tria_accessor);
+        return (dealii_cell_accessor.material_id() == block_id);
+      }
+      else
+        throw std::runtime_error("inBlock not implemented for faces");
+    }
+
+
+
+    static bool onBoundary(const int boundary_id,
+        Teuchos::RCP<DealIIEntityExtraData<structdim,dim,spacedim>> extra_data)
+    {
+      auto dealii_tria_accessor =
+        Teuchos::rcp_dynamic_cast<DealIIEntityExtraData<structdim,dim,spacedim>>
+        (extra_data)->dealii_tria_accessor;
+      if (structdim == dim)
+      {
+        dealii::CellAccessor<dim,spacedim> dealii_cell_accessor(dealii_tria_accessor);
+        // it is on the boundary boundary_id if any of its face is on it
+        for (unsigned int face = 0; face < dealii::GeometryInfo<dim>::faces_per_cell; ++face)
+        {
+          if (dealii_cell_accessor.face(face)->boundary_id() == boundary_id)
+            return true;
+        }
+        return false;
+      }
+      else
+        throw std::runtime_error("onBondary not implemented for faces");
+    }
+  };
+
+  template <int dim,int spacedim>
+  struct Entity<0,dim,spacedim>
+  {
+    static DataTransferKit::EntityId id(
+        Teuchos::RCP<DealIIEntityExtraData<0,dim,spacedim>> extra_data)
+    {
+      auto dealii_tria_accessor =
+        Teuchos::rcp_dynamic_cast<DealIIEntityExtraData<0,dim,spacedim>>
+            (extra_data)->dealii_tria_accessor;
+      DataTransferKit::EntityId entity_id =
+        (*(extra_data->dealii_local_to_global_vertex_id))[dealii_tria_accessor.vertex_index()];
+
+      return entity_id; 
+    }
+
+
+
+    static int ownerRank(Teuchos::RCP<DealIIEntityExtraData<0,dim,spacedim>> extra_data)
+    {
+      auto dealii_tria_accessor =
+        Teuchos::rcp_dynamic_cast<DealIIEntityExtraData<0,dim,spacedim>>
+        (extra_data)->dealii_tria_accessor;
+      unsigned int min_rank=-1;
+      std::set<typename dealii::Triangulation<dim,spacedim>::active_cell_iterator> adjacent_cells =
+        (*(extra_data->dealii_vertex_to_cell))[dealii_tria_accessor.vertex_index()];
+      for (auto && adjacent_cell : adjacent_cells)
+        if (min_rank > adjacent_cell->subdomain_id())
+          min_rank = adjacent_cell->subdomain_id();
+      
+      return min_rank;
+    }
+
+
+
+    static bool inBlock(const int block_id,
+        Teuchos::RCP<DealIIEntityExtraData<0,dim,spacedim>> extra_data)
+    {
+      auto dealii_tria_accessor =
+        Teuchos::rcp_dynamic_cast<DealIIEntityExtraData<0,dim,spacedim>>
+        (extra_data)->dealii_tria_accessor;
+      std::set<typename dealii::Triangulation<dim,spacedim>::active_cell_iterator> adjacent_cells =
+        (*(extra_data->dealii_vertex_to_cell))[dealii_tria_accessor.vertex_index()];
+      for (auto && adjacent_cell : adjacent_cells)
+      {
+        if (adjacent_cell->material_id() == block_id)
+          return true;
+      }
+      return false;
+    }
+
+
+
+    static bool onBoundary(const int boundary_id,
+        Teuchos::RCP<DealIIEntityExtraData<0,dim,spacedim>> extra_data)
+    {
+      auto dealii_tria_accessor =
+        Teuchos::rcp_dynamic_cast<DealIIEntityExtraData<0,dim,spacedim>>
+        (extra_data)->dealii_tria_accessor;
+      std::set<typename dealii::Triangulation<dim,spacedim>::active_cell_iterator> adjacent_cells =
+        (*(extra_data->dealii_vertex_to_cell))[dealii_tria_accessor.vertex_index()];
+      for (auto && adjacent_cell : adjacent_cells)
+        for (unsigned int face = 0; face<dealii::GeometryInfo<dim>::faces_per_cell; ++face)
+          for (unsigned int v = 0; v<dealii::GeometryInfo<dim>::vertices_per_face; ++v)
+            if (adjacent_cell->face(face)->vertex_index(v)==dealii_tria_accessor.vertex_index())
+              if (adjacent_cell->face(face)->boundary_id() == boundary_id)
+                return true;
+      
+      return false;
+    }
+  };
+}
+
+
+
+
 template <int structdim,int dim,int spacedim>
 DealIIEntityImpl<structdim,dim,spacedim>::
 DealIIEntityImpl(dealii::TriaAccessor<structdim,dim,spacedim> const & tria_accessor,
@@ -18,27 +187,7 @@ DataTransferKit::EntityId
 DealIIEntityImpl<structdim,dim,spacedim>::
 id() const
 {
-    auto dealii_tria_accessor =
-        Teuchos::rcp_dynamic_cast<DealIIEntityExtraData<structdim,dim,spacedim>>
-            (extra_data)->dealii_tria_accessor;
-    DataTransferKit::EntityId entity_id = 0;
-
-    // if entity is a volume element
-#if (structdim == dim)
-        // Index is unique for only for a given level on a given processor. The
-        // level is limited at 11 by p4est.
-        unsigned int n_levels = 12;
-        entity_id = this->ownerRank() * n_levels * (static_cast<unsigned int>(-1) + 1) +  
-            dealii_tria_accessor.level() * (static_cast<unsigned int>(-1) + 1) + 
-            dealii_tria_accessor.index();
-#elif (structdim == 0)
-        entity_id = 
-          (*(extra_data->dealii_local_to_global_vertex_id))[dealii_tria_accessor->vertex_index()];
-#else
-        throw std::runtime_error("entity_id not implemented for faces");
-#endif
-
-    return entity_id; 
+  return internal::Entity<structdim,dim,spacedim>::id(extra_data);
 }
 
 
@@ -48,34 +197,7 @@ int
 DealIIEntityImpl<structdim,dim,spacedim>::
 ownerRank() const
 {
-    auto dealii_tria_accessor =
-        Teuchos::rcp_dynamic_cast<DealIIEntityExtraData<structdim,dim,spacedim>>
-            (extra_data)->dealii_tria_accessor;
-#if (structdim == dim)
-    std::cout<<"if (structdim == dim)"<<std::endl;
-    std::cout<<"structdim "<<structdim<<std::endl;
-    std::cout<<"dim "<<dim<<std::endl;
-    std::cout<<"spacedim "<<spacedim<<std::endl;
-    dealii::CellAccessor<dim,spacedim> dealii_cell_accessor(dealii_tria_accessor);
-    return dealii_cell_accessor.subdomain_id();
-#elif (structdim == 0)
-    int min_rank=-1;
-    std::set<typename dealii::Triangulation<dim,spacedim>::active_cell_iterator> adjacent_cells =
-      (*(extra_data->dealii_vertex_to_cell))[dealii_tria_accessor.vertex_index()];
-    for (auto && adjacent_cell : adjacent_cells)
-    {
-      std::cout<<adjacent_cell->center()<<std::endl;
-      if (min_rank == -1)
-        min_rank = adjacent_cell->subdomain_id();
-      else
-        if (min_rank > adjacent_cell->subdomain_id())
-          min_rank = adjacent_cell->subdomain_id();
-    }
-    return min_rank;
-#else
-    throw std::runtime_error("entity_id not implemented for faces");
-    return 0;
-#endif
+  return internal::Entity<structdim,dim,spacedim>::ownerRank(extra_data);
 }
 
 
@@ -125,27 +247,7 @@ bool
 DealIIEntityImpl<structdim,dim,spacedim>::
 inBlock( const int block_id ) const
 {        
-    auto dealii_tria_accessor =
-        Teuchos::rcp_dynamic_cast<DealIIEntityExtraData<structdim,dim,spacedim>>
-            (extra_data)->dealii_tria_accessor;
-    // Need to use preprocessor macro otherwise the explicit instantiation
-    // creates problem: call vertex_index on a cell
-
-#if (structdim == dim) 
-        dealii::CellAccessor<dim,spacedim> dealii_cell_accessor(dealii_tria_accessor);
-        return (dealii_cell_accessor.material_id() == block_id);
-#elif (structdim == 0)
-        std::set<typename dealii::Triangulation<dim,spacedim>::active_cell_iterator> adjacent_cells =
-          (*(extra_data->dealii_vertex_to_cell))[dealii_tria_accessor.vertex_index()];
-        for (auto && adjacent_cell : adjacent_cells)
-        {
-          if (adjacent_cell->material_id() == block_id)
-            return true;
-        }
-        return false;
-#else 
-        throw std::runtime_error("inBlock not implemented for faces");
-#endif
+  return internal::Entity<structdim,dim,spacedim>::inBlock(block_id,extra_data);
 }
 
 
@@ -155,37 +257,7 @@ bool
 DealIIEntityImpl<structdim,dim,spacedim>::
 onBoundary( const int boundary_id ) const
 { 
-    auto dealii_tria_accessor =
-        Teuchos::rcp_dynamic_cast<DealIIEntityExtraData<structdim,dim,spacedim>>
-            (extra_data)->dealii_tria_accessor;
-    // Need to use preprocessor macro otherwise the explicit instantiation
-    // creates problem: call boundary_id on a vertex
-
-    // if the entity is an element
-#if (structdim == dim)
-        dealii::CellAccessor<dim,spacedim> dealii_cell_accessor(dealii_tria_accessor);
-        // it is on the boundary boundary_id if any of its face is on it
-        for (unsigned int face = 0; face < dealii::GeometryInfo<dim>::faces_per_cell; ++face)
-            if (dealii_cell_accessor.face(face)->boundary_id() == boundary_id)
-                return true;
-        return false;
-    // if the entity is a face
-#elif (structdim == dim-1)
-        return (dealii_tria_accessor.boundary_id() == boundary_id);
-    // if the entity is a vertex
-#elif (structdim == 0)
-        std::set<typename dealii::Triangulation<dim,spacedim>::active_cell_iterator> adjacent_cells =
-          (*(extra_data->dealii_vertex_to_cell))[dealii_tria_accessor.vertex_index()];
-        for (auto && adjacent_cell : adjacent_cells)
-        {
-          for (unsigned int face = 0; face<dealii::GeometryInfo<dim>::faces_per_cell; ++face)
-            if (adjacent_cell->face(face)->boundary_id() == boundary_id)
-              return true;
-        }
-        return false;
-#else
-        throw std::runtime_error("onBondary not implemented for edges");
-#endif
+  return internal::Entity<structdim,dim,spacedim>::onBoundary(boundary_id,extra_data);
 }
 
 

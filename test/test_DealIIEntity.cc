@@ -10,6 +10,14 @@
 #include <deal.II/base/mpi.h>
 #include <no_comment/DTK_DealIIEntity.h>
 
+struct MPIFixture
+{
+  MPIFixture() { MPI_Init(NULL,NULL); }
+  ~MPIFixture() { MPI_Finalize(); }
+};
+
+BOOST_GLOBAL_FIXTURE(MPIFixture);
+
 BOOST_AUTO_TEST_CASE( test_DealIIEntity_cell )
 {
     // Probably want to call templated function
@@ -68,7 +76,6 @@ BOOST_AUTO_TEST_CASE( test_DealIIEntity_cell )
 
 BOOST_AUTO_TEST_CASE( test_DealIIEntity_node )
 {
-  MPI_Init(NULL,NULL);
   // Probably want to call templated function
   int const structdim = 0;
   int const dim = 3;
@@ -139,6 +146,4 @@ BOOST_AUTO_TEST_CASE( test_DealIIEntity_node )
     for (unsigned int j=0; j<6; ++j)
     BOOST_CHECK(  dtk_entity.onBoundary(j) == boundary[i][j] );
   }
-
-  MPI_Finalize();
 }
