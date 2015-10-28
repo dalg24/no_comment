@@ -3,7 +3,7 @@
 
 
 
-// Partial specilization of a function is forbiddent, so we delegue the work to
+// Partial specialization of a function is forbidden, so we delegue the work to
 // some classes that can be specialized
 namespace internal
 {

@@ -1,6 +1,47 @@
 #include <no_comment/DTK_DealIIEntityExtraData.h>
 #include <no_comment/DTK_DealIIEntityLocalMap.h>
 
+
+// Partial specialization of a function is forbidden, so we delegue the work to
+// some classes that can be specialized
+namespace internal
+{
+  template <int structdim,int dim,int spacedim> struct local_map;
+  template <int dim,int spacedim> struct local_map<0,dim,spacedim>;
+
+  template <int structdim,int dim,int spacedim>
+  struct local_map
+  {
+    static bool check_point_inclusion(
+        const Teuchos::ArrayView<const double>& reference_point) 
+    {
+      dealii::Point<structdim> referencePoint;
+      for (int d = 0; d < spacedim; ++d)
+        referencePoint[d] = reference_point[d];
+      // NOTE: use set parameters...
+      double const epsilon = 1.0e-10;
+
+      return dealii::GeometryInfo<dim>::is_inside_unit_cell(referencePoint, epsilon);
+    }
+  };
+
+
+
+  template <int dim,int spacedim>
+  struct local_map<0,dim,spacedim>
+  {
+    static bool check_point_inclusion(
+        const Teuchos::ArrayView<const double>& reference_point) 
+    {
+      // Not sure what this is supposed to return for a point. So always return
+      // false.
+      return false;
+    }
+  };
+}
+
+
+
 template <int structdim,int dim,int spacedim>
 DealIIEntityLocalMap<structdim,dim,spacedim>::
 DealIIEntityLocalMap(std::shared_ptr<dealii::Mapping<dim,spacedim> const> mapping)
@@ -117,12 +158,7 @@ checkPointInclusion(
     const Teuchos::ArrayView<const double>& reference_point ) const
 {
     std::ignore = entity;
-    dealii::Point<structdim> referencePoint;
-    for (int d = 0; d < spacedim; ++d)
-        referencePoint[d] = reference_point[d];
-    // NOTE: use set parameters...
-    double const epsilon = 1.0e-10;
-    return dealii::GeometryInfo<dim>::is_inside_unit_cell(referencePoint, epsilon);
+    return internal::local_map<structdim,dim,spacedim>::check_point_inclusion(reference_point);
 }
 
 
@@ -168,6 +204,9 @@ normalAtReferencePoint(
     throw  std::runtime_error("DealIIEntityLocalMap::normalAtReferencePoint(...) not implemented");
 }
 
+template class DealIIEntityLocalMap<0,2,2>;
+template class DealIIEntityLocalMap<0,2,3>;
+template class DealIIEntityLocalMap<0,3,3>;
 template class DealIIEntityLocalMap<2,2,2>;
 template class DealIIEntityLocalMap<2,2,3>;
 template class DealIIEntityLocalMap<3,3,3>;
