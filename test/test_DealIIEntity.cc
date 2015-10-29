@@ -12,8 +12,13 @@
 
 struct MPIFixture
 {
-  MPIFixture() { MPI_Init(NULL,NULL); }
-  ~MPIFixture() { MPI_Finalize(); }
+    MPIFixture()
+    {
+        int argc = boost::unit_test::framework::master_test_suite().argc;
+        char **argv = boost::unit_test::framework::master_test_suite().argv;
+        MPI_Init(&argc,&argv);
+    }
+    ~MPIFixture() { MPI_Finalize(); }
 };
 
 BOOST_GLOBAL_FIXTURE(MPIFixture);
