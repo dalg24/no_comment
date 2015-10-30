@@ -15,11 +15,13 @@
 #include <Teuchos_Array.hpp>
 #include <Teuchos_Tuple.hpp>
 
+#include <deal.II/distributed/tria.h>
+
 template <int dim,int spacedim>
 class DealIIEntitySet : public DataTransferKit::EntitySet
 {
   public:
-    DealIIEntitySet(const Teuchos::RCP<dealii::Triangulation<dim,spacedim>>& dealii_mesh);
+    DealIIEntitySet(const Teuchos::RCP<dealii::parallel::distributed::Triangulation<dim,spacedim>>& dealii_mesh);
 
     Teuchos::RCP<const Teuchos::Comm<int>> communicator() const override;
 
@@ -42,7 +44,7 @@ class DealIIEntitySet : public DataTransferKit::EntitySet
     { return std::string("deal.II Mesh"); }
 
   private:
-    Teuchos::RCP<dealii::Triangulation<dim,spacedim>> d_dealii_triangulation;
+    Teuchos::RCP<dealii::parallel::distributed::Triangulation<dim,spacedim>> d_dealii_triangulation;
 
     Teuchos::RCP<DealIIAdjacencies<dim,spacedim>> d_adjacencies;
 };

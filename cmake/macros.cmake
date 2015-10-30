@@ -11,7 +11,7 @@ FUNCTION(ADD_NO_COMMENT_TEST TEST_NAME)
     ENDIF()
     FOREACH(N_PROCS ${NUMBER_OF_PROCESSES_TO_RUN})
         ADD_TEST(
-            NAME ${TEST_NAME}_${N_PROCS}_PROCS
+            NAME ${TEST_NAME}_${N_PROCS}_procs
             COMMAND ${MPIEXEC} -np ${N_PROCS} ${TEST_NAME}.exe
             )
     ENDFOREACH()

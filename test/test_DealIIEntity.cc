@@ -3,24 +3,13 @@
 #include <Teuchos_VerboseObject.hpp>
 #include <Teuchos_FancyOStream.hpp>
 #include <boost/test/unit_test.hpp>
-#include <deal.II/grid/tria.h>
 #include <deal.II/distributed/tria.h>
 #include <deal.II/grid/grid_generator.h>
 #include <deal.II/grid/grid_tools.h>
 #include <deal.II/base/mpi.h>
 #include <no_comment/DTK_DealIIEntity.h>
 
-struct MPIFixture
-{
-    MPIFixture()
-    {
-        int argc = boost::unit_test::framework::master_test_suite().argc;
-        char **argv = boost::unit_test::framework::master_test_suite().argv;
-        MPI_Init(&argc,&argv);
-    }
-    ~MPIFixture() { MPI_Finalize(); }
-};
-
+#include "MPIFixture.cc"
 BOOST_GLOBAL_FIXTURE(MPIFixture);
 
 BOOST_AUTO_TEST_CASE( test_DealIIEntity_cell )
@@ -31,7 +20,7 @@ BOOST_AUTO_TEST_CASE( test_DealIIEntity_cell )
     int const spacedim = 3;
 
     // Build a mesh
-    dealii::Triangulation<dim,spacedim> tria;
+    dealii::parallel::distributed::Triangulation<dim,spacedim> tria(MPI_COMM_WORLD);
     dealii::GridGenerator::hyper_rectangle(tria,
         dealii::Point<spacedim>(-1.0, -2.0, -3.0),
         dealii::Point<spacedim>( 0.0,  0.0,  0.0),

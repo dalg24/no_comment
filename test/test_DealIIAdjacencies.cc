@@ -7,14 +7,8 @@
 #include <deal.II/base/mpi.h>
 #include <boost/test/unit_test.hpp>
 
-struct MPIFixture
-{
-  MPIFixture() { MPI_Init(NULL,NULL); }
-  ~MPIFixture() { MPI_Finalize(); }
-};
-
+#include "MPIFixture.cc"
 BOOST_GLOBAL_FIXTURE(MPIFixture);
-
 
 BOOST_AUTO_TEST_CASE( test_DealIIAdjacencies )
 {
@@ -33,17 +27,5 @@ BOOST_AUTO_TEST_CASE( test_DealIIAdjacencies )
       true);
   tria->refine_global(3);
 
-  std::vector<std::set<
-    typename dealii::Triangulation<dim,spacedim>::active_cell_iterator>> vertex_to_cell_tmp(
-        dealii::GridTools::vertex_to_cell_map(*tria));
-  Teuchos::RCP<std::vector<std::set<
-    typename dealii::Triangulation<dim,spacedim>::active_cell_iterator>>> vertex_to_cell = 
-    Teuchos::rcpFromRef(vertex_to_cell_tmp);
-  std::map<unsigned int, unsigned long long int> local_to_global_vertex_id_tmp(
-        dealii::GridTools::compute_local_to_global_vertex_index_map(*tria));
-  Teuchos::RCP<std::map<unsigned int, unsigned long long int>> local_to_global_vertex_id =
-    Teuchos::rcpFromRef(local_to_global_vertex_id_tmp);
-
-  DealIIAdjacencies<dim,spacedim> dealii_adjacencies(tria, vertex_to_cell, 
-      local_to_global_vertex_id);
+  DealIIAdjacencies<dim,spacedim> dealii_adjacencies(tria);
 }
