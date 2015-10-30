@@ -8,24 +8,24 @@
 template <int dim,int spacedim>
 class DealIIAdjacencies
 {
+using Node = dealii::TriaAccessor<  0,dim,spacedim>*;
+using Elem = dealii::TriaAccessor<dim,dim,spacedim>*;
 public:
     DealIIAdjacencies(Teuchos::RCP<dealii::parallel::distributed::Triangulation<dim,spacedim> const> tria);
 
-    dealii::TriaAccessor<  0,dim,spacedim>* getNodeById(DataTransferKit::EntityId const id) const;
-    dealii::TriaAccessor<dim,dim,spacedim>* getElemById(DataTransferKit::EntityId const id) const;
+    Node getNodeById(DataTransferKit::EntityId const id) const;
+    Elem getElemById(DataTransferKit::EntityId const id) const;
+    std::pair<
+        typename std::unordered_multimap<Node,Elem>::const_iterator,
+        typename std::unordered_multimap<Node,Elem>::const_iterator
+        > getElemAdjacentToNode(DataTransferKit::EntityId const id) const;
 private:
     std::unordered_map<
-        DataTransferKit::EntityId,
-        dealii::TriaAccessor<dim,dim,spacedim>*
-        > elem_id_map;
+        DataTransferKit::EntityId,Elem> elem_id_map;
     std::unordered_map<
-        DataTransferKit::EntityId,
-        dealii::TriaAccessor<0,dim,spacedim>*
-        > node_id_map;
+        DataTransferKit::EntityId,Node> node_id_map;
     std::unordered_multimap<
-        dealii::TriaAccessor<0  ,dim,spacedim>*,
-        dealii::TriaAccessor<dim,dim,spacedim>*
-        > node_to_elem_map;
+        Node,Elem>                      node_to_elem_map;
 };
 
 #endif

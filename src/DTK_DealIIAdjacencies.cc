@@ -61,9 +61,12 @@ dealii::TriaAccessor<0,dim,spacedim>*
 DealIIAdjacencies<dim,spacedim>::
 getNodeById(DataTransferKit::EntityId const id) const
 {
-  AssertThrow(node_id_map.count(id),dealii::ExcMessage("Unknown id"));
+    auto ret = node_id_map.find(id);
+    AssertThrow(
+        ret != node_id_map.end(),
+        dealii::ExcMessage("Unknown id") );
 
-  return node_id_map.find(id)->second;
+    return ret->second;
 }
 
 
@@ -72,11 +75,36 @@ dealii::TriaAccessor<dim,dim,spacedim>*
 DealIIAdjacencies<dim,spacedim>::
 getElemById(DataTransferKit::EntityId const id) const
 {
-  AssertThrow(elem_id_map.count(id),dealii::ExcMessage("Unknown id"));
+    auto ret = elem_id_map.find(id);
+    AssertThrow(
+        ret != elem_id_map.end(),
+        dealii::ExcMessage("Unknown id") );
 
-  return elem_id_map.find(id)->second;
+    return ret->second;
 }
 
+
+template <int dim,int spacedim>
+std::pair<
+    typename std::unordered_multimap<
+        dealii::TriaAccessor<  0,dim,spacedim>*,
+        dealii::TriaAccessor<dim,dim,spacedim>*
+        >::const_iterator,
+    typename std::unordered_multimap<
+        dealii::TriaAccessor<  0,dim,spacedim>*,
+        dealii::TriaAccessor<dim,dim,spacedim>*
+        >::const_iterator
+    >
+DealIIAdjacencies<dim,spacedim>::
+getElemAdjacentToNode(DataTransferKit::EntityId const id) const
+{
+      auto ret = node_to_elem_map.equal_range(getNodeById(id));
+      AssertThrow(
+          ret.first != ret.second,
+          dealii::ExcMessage("Unknown id") );
+
+      return ret;
+}
 
 
 template class DealIIAdjacencies<2,2>;
