@@ -68,8 +68,14 @@ getAdjacentEntities(
     Teuchos::Array<DataTransferKit::Entity>& adjacent_entities) const
 {
     if ((entity.physicalDimension() == 0) && (adjacent_dimension  == dim)) {
-        std::ignore = adjacent_entities;
-        throw std::runtime_error("not implemented");
+        auto ret = d_adjacencies->getElemAdjacentToNode(entity.id());
+        adjacent_entities.resize(std::distance(ret.first, ret.second));
+        auto dtk_entity = adjacent_entities.begin();
+        for (auto it = ret.first; it != ret.second; ++it, ++dtk_entity)
+            *dtk_entity = DealIIEntity<dim,dim,spacedim>(*(it->second));
+        AssertThrow(
+            dtk_entity == adjacent_entities.end(),
+            dealii::ExcMessage("not good") );
     } else {
         throw std::runtime_error("not implemented");
     }
