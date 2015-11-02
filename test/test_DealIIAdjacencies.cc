@@ -8,19 +8,17 @@
 #include <boost/test/unit_test.hpp>
 
 #include "MPIFixture.cc"
-BOOST_GLOBAL_FIXTURE(MPIFixture);
 
-BOOST_AUTO_TEST_CASE( test_DealIIAdjacencies )
+BOOST_FIXTURE_TEST_CASE( test_DealIIAdjacencies, MPIFixture )
 {
   // Probably want to call templated function
   int const dim = 3;
   int const spacedim = 3;
 
   // Build a mesh
-  dealii::parallel::distributed::Triangulation<dim,spacedim> tria_tmp(
-      MPI_COMM_WORLD);                                                
   Teuchos::RCP<dealii::parallel::distributed::Triangulation<dim,spacedim>> tria =
-    Teuchos::rcpFromRef(tria_tmp);
+    Teuchos::rcp(new dealii::parallel::distributed::Triangulation<dim,spacedim>(world));
+
   dealii::GridGenerator::hyper_rectangle(*tria,
       dealii::Point<spacedim>(-1.0, -2.0, -3.0),
       dealii::Point<spacedim>( 0.0,  0.0,  0.0),
