@@ -6,9 +6,11 @@
 #include <DTK_Entity.hpp>
 #include <Teuchos_Ptr.hpp>
 
-template <typename DealIIGeomIterator,int dim,int spacedim>
+template <int structdim,int dim,int spacedim>
 class DealIIEntityIterator : public DataTransferKit::EntityIterator
 {
+  using DealIIGeomIterator =
+      dealii::TriaActiveIterator<dealii::TriaAccessor<structdim,dim,spacedim>>;
   public:
     DealIIEntityIterator();
 
@@ -16,14 +18,14 @@ class DealIIEntityIterator : public DataTransferKit::EntityIterator
         DealIIGeomIterator dealii_iterator,
         DealIIGeomIterator dealii_iterator_begin,
         DealIIGeomIterator dealii_iterator_end,
-        Teuchos::Ptr<dealii::Triangulation<dim,spacedim>> const &dealii_mesh,
+        Teuchos::Ptr<dealii::parallel::distributed::Triangulation<dim,spacedim>> const &dealii_mesh,
         Teuchos::Ptr<DealIIAdjacencies<dim,spacedim>> const &adjacencies,
         DataTransferKit::PredicateFunction const &predicate);
 
-    DealIIEntityIterator(DealIIEntityIterator<DealIIGeomIterator,dim,spacedim> const &rhs);
+    DealIIEntityIterator(DealIIEntityIterator<structdim,dim,spacedim> const &rhs);
 
-    DealIIEntityIterator<DealIIGeomIterator,dim,spacedim> &
-      operator= (DealIIEntityIterator<DealIIGeomIterator,dim,spacedim> const &rhs);
+    DealIIEntityIterator<structdim,dim,spacedim> &
+      operator= (DealIIEntityIterator<structdim,dim,spacedim> const &rhs);
 
     ~DealIIEntityIterator();
 
@@ -47,7 +49,7 @@ class DealIIEntityIterator : public DataTransferKit::EntityIterator
     DealIIGeomIterator d_dealii_iterator;
     DealIIGeomIterator d_dealii_iterator_begin;
     DealIIGeomIterator d_dealii_iterator_end;
-    Teuchos::Ptr<dealii::Triangulation<dim,spacedim>> d_dealii_mesh;
+    Teuchos::Ptr<dealii::parallel::distributed::Triangulation<dim,spacedim>> d_dealii_mesh;
     Teuchos::Ptr<DealIIAdjacencies<dim,spacedim>> d_adjacencies;
     DataTransferKit::Entity d_current_entity;
 };
