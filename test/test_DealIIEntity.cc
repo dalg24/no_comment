@@ -10,9 +10,7 @@
 #include <no_comment/DTK_DealIIEntity.h>
 
 #include "MPIFixture.cc"
-BOOST_GLOBAL_FIXTURE(MPIFixture);
-
-BOOST_AUTO_TEST_CASE( test_DealIIEntity_cell )
+BOOST_FIXTURE_TEST_CASE( test_DealIIEntity_cell, MPIFixture )
 {
     // Probably want to call templated function
     int const structdim = 3;
@@ -20,7 +18,7 @@ BOOST_AUTO_TEST_CASE( test_DealIIEntity_cell )
     int const spacedim = 3;
 
     // Build a mesh
-    dealii::parallel::distributed::Triangulation<dim,spacedim> tria(MPI_COMM_WORLD);
+    DataTransferKit::DealIIMesh<dim,spacedim> tria(world);
     dealii::GridGenerator::hyper_rectangle(tria,
         dealii::Point<spacedim>(-1.0, -2.0, -3.0),
         dealii::Point<spacedim>( 0.0,  0.0,  0.0),
@@ -31,7 +29,7 @@ BOOST_AUTO_TEST_CASE( test_DealIIEntity_cell )
 
     // Create a dtk entity for the single volume element in the mesh
     DataTransferKit::Entity dtk_entity =
-        DealIIEntity<structdim,dim,spacedim>(tria_iterator);
+        DataTransferKit::DealIIEntity<structdim,dim,spacedim>(tria_iterator);
 
     // Print out the entity.
     Teuchos::RCP<Teuchos::FancyOStream>
@@ -68,7 +66,7 @@ BOOST_AUTO_TEST_CASE( test_DealIIEntity_cell )
     BOOST_CHECK( !dtk_entity.onBoundary(6) );
 }
 
-BOOST_AUTO_TEST_CASE( test_DealIIEntity_node )
+BOOST_FIXTURE_TEST_CASE( test_DealIIEntity_node, MPIFixture )
 {
   // Probably want to call templated function
   int const structdim = 0;
@@ -76,7 +74,7 @@ BOOST_AUTO_TEST_CASE( test_DealIIEntity_node )
   int const spacedim = 3;
 
   // Build a distributed mesh
-  dealii::parallel::distributed::Triangulation<dim,spacedim> tria(MPI_COMM_WORLD);
+  DataTransferKit::DealIIMesh<dim,spacedim> tria(world);
   dealii::GridGenerator::hyper_rectangle(tria,
       dealii::Point<spacedim>(-1.0, -2.0, -3.0),
       dealii::Point<spacedim>( 0.0,  0.0,  0.0),
@@ -109,7 +107,7 @@ BOOST_AUTO_TEST_CASE( test_DealIIEntity_node )
   {
     auto vertex_iterator = tria_iterator.vertex_iterator(i);
     DataTransferKit::Entity dtk_entity =
-      DealIIEntity<structdim,dim,spacedim>(*vertex_iterator, teuchos_vertex_to_cell, 
+      DataTransferKit::DealIIEntity<structdim,dim,spacedim>(*vertex_iterator, teuchos_vertex_to_cell, 
           teuchos_local_to_global_vertex_id);
     // Print out the entity.
     Teuchos::RCP<Teuchos::FancyOStream>

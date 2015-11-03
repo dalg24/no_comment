@@ -13,7 +13,6 @@
 
 #include "MPIFixture.cc"
 
-//BOOST_AUTO_TEST_CASE( test_DealIIEntitySet, *boost::unit_test::fixture<MPIFixture>() )
 BOOST_FIXTURE_TEST_CASE( test_DealIIEntitySet, MPIFixture )
 {
     // Probably want to call templated function
@@ -21,8 +20,8 @@ BOOST_FIXTURE_TEST_CASE( test_DealIIEntitySet, MPIFixture )
     int const spacedim = 3;
 
     // Build a mesh
-    Teuchos::RCP<dealii::parallel::distributed::Triangulation<dim,spacedim>> dealii_mesh =
-        Teuchos::rcp(new dealii::parallel::distributed::Triangulation<dim,spacedim>(world));
+    Teuchos::RCP<DataTransferKit::DealIIMesh<dim,spacedim>> dealii_mesh =
+        Teuchos::rcp(new DataTransferKit::DealIIMesh<dim,spacedim>(world));
 
     dealii::GridGenerator::hyper_rectangle(*dealii_mesh,
         dealii::Point<spacedim>(-1.0, -2.0, -3.0),
@@ -31,7 +30,7 @@ BOOST_FIXTURE_TEST_CASE( test_DealIIEntitySet, MPIFixture )
 
     // Create a dtk entity set
     Teuchos::RCP<DataTransferKit::EntitySet> dtk_entity_set =
-        Teuchos::rcp(new DealIIEntitySet<dim,spacedim>(dealii_mesh));
+        Teuchos::rcp(new DataTransferKit::DealIIEntitySet<dim,spacedim>(dealii_mesh));
 
     // Get the communicator
     auto comm = dtk_entity_set->communicator();

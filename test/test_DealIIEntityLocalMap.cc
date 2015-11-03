@@ -7,7 +7,9 @@
 #include <no_comment/DTK_DealIIEntity.h>
 #include <no_comment/DTK_DealIIEntityLocalMap.h>
 
-BOOST_AUTO_TEST_CASE( test_DealIIEntityLocalMap )
+#include "MPIFixture.cc"
+
+BOOST_FIXTURE_TEST_CASE( test_DealIIEntityLocalMap, MPIFixture )
 {
     // Probably want to call templated function
     int const structdim = 3;
@@ -15,7 +17,7 @@ BOOST_AUTO_TEST_CASE( test_DealIIEntityLocalMap )
     int const spacedim = 3;
 
     // Build a mesh
-    dealii::Triangulation<dim,spacedim> dealii_tria;
+    DataTransferKit::DealIIMesh<dim,spacedim> dealii_tria(world);
     dealii::GridGenerator::hyper_rectangle(dealii_tria,
         dealii::Point<spacedim>(-1.0, -2.0, -3.0),
         dealii::Point<spacedim>( 0.0,  0.0,  0.0),
@@ -26,13 +28,13 @@ BOOST_AUTO_TEST_CASE( test_DealIIEntityLocalMap )
 
     // Create a dtk entity for the single volume element in the mesh
     DataTransferKit::Entity dtk_entity =
-        DealIIEntity<structdim,dim,spacedim>(dealii_tria_iterator);
+        DataTransferKit::DealIIEntity<structdim,dim,spacedim>(dealii_tria_iterator);
 
     // Create a local map
     auto dealii_mapping =
         std::make_shared<dealii::MappingQ1<dim,spacedim>>();
     Teuchos::RCP<DataTransferKit::EntityLocalMap> dtk_entity_local_map =
-        Teuchos::rcp(new DealIIEntityLocalMap<structdim,dim,spacedim>(dealii_mapping) );
+        Teuchos::rcp(new DataTransferKit::DealIIEntityLocalMap<structdim,dim,spacedim>(dealii_mapping) );
 
     // Measure
     double const percent_tolerance = 1.0e-10;

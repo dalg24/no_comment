@@ -16,8 +16,8 @@ BOOST_FIXTURE_TEST_CASE( test_DealIIAdjacencies, MPIFixture )
   int const spacedim = 3;
 
   // Build a mesh
-  Teuchos::RCP<dealii::parallel::distributed::Triangulation<dim,spacedim>> tria =
-    Teuchos::rcp(new dealii::parallel::distributed::Triangulation<dim,spacedim>(world));
+  Teuchos::RCP<DataTransferKit::DealIIMesh<dim,spacedim>> tria =
+    Teuchos::rcp(new DataTransferKit::DealIIMesh<dim,spacedim>(world));
 
   dealii::GridGenerator::hyper_rectangle(*tria,
       dealii::Point<spacedim>(-1.0, -2.0, -3.0),
@@ -25,5 +25,5 @@ BOOST_FIXTURE_TEST_CASE( test_DealIIAdjacencies, MPIFixture )
       true);
   tria->refine_global(3);
 
-  DealIIAdjacencies<dim,spacedim> dealii_adjacencies(tria);
+  DataTransferKit::DealIIAdjacencies<dim,spacedim> dealii_adjacencies(tria);
 }

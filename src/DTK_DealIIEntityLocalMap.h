@@ -5,8 +5,10 @@
 
 #include <deal.II/fe/mapping.h>
 
+namespace DataTransferKit {
+
 template <int structdim,int dim,int spacedim>
-class DealIIEntityLocalMap : public DataTransferKit::EntityLocalMap
+class DealIIEntityLocalMap : public EntityLocalMap
 {
 public:
 
@@ -24,14 +26,14 @@ public:
      * \param entity Compute the measure for this entity.
      * \return The measure of the entity.
      */
-    double measure( const DataTransferKit::Entity& entity ) const override;
+    double measure( const Entity& entity ) const override;
 
     /*!
      * \brief Return the centroid of the entity.
      * \param centroid A view of the centroid coordinates. This view will
      * be allocated. Assign a view of your centroid to this view.
      */
-    void centroid( const DataTransferKit::Entity& entity,
+    void centroid( const Entity& entity,
        const Teuchos::ArrayView<double>& centroid ) const override;
 
     /*!
@@ -45,7 +47,7 @@ public:
      * \return Return true if it is safe to map to the reference frame.
      */
     bool isSafeToMapToReferenceFrame(
-        const DataTransferKit::Entity& entity,
+        const Entity& entity,
         const Teuchos::ArrayView<const double>& physical_point ) const override;
 
     /*!
@@ -60,7 +62,7 @@ public:
      * \return Return true if the map to reference frame succeeded.
      */
     bool mapToReferenceFrame( 
-        const DataTransferKit::Entity& entity,
+        const Entity& entity,
         const Teuchos::ArrayView<const double>& physical_point,
         const Teuchos::ArrayView<double>& reference_point ) const override;
 
@@ -74,7 +76,7 @@ public:
      * \return True if the point is in the reference space, false if not.
      */
     bool checkPointInclusion( 
-        const DataTransferKit::Entity& entity,
+        const Entity& entity,
         const Teuchos::ArrayView<const double>& reference_point ) const override;
 
     /*!
@@ -87,7 +89,7 @@ public:
      * to write the coordinates of physical point.
      */
     void mapToPhysicalFrame( 
-        const DataTransferKit::Entity& entity,
+        const Entity& entity,
         const Teuchos::ArrayView<const double>& reference_point,
         const Teuchos::ArrayView<double>& physical_point ) const override;
 
@@ -104,13 +106,15 @@ public:
      * the normal.
      */
     void normalAtReferencePoint( 
-        const DataTransferKit::Entity& entity,
-        const DataTransferKit::Entity& parent_entity,
+        const Entity& entity,
+        const Entity& parent_entity,
         const Teuchos::ArrayView<const double>& reference_point,
         const Teuchos::ArrayView<double>& normal ) const override;
 
 private:
     std::shared_ptr<dealii::Mapping<dim,spacedim> const> dealii_mapping;
 };
+
+} // end namespace DataTransferKit
 
 #endif

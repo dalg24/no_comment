@@ -1,6 +1,7 @@
 #include <no_comment/DTK_DealIIEntityExtraData.h>
 #include <no_comment/DTK_DealIIEntityLocalMap.h>
 
+namespace DataTransferKit {
 
 // Partial specialization of a function is forbidden, so we delegue the work to
 // some classes that can be specialized
@@ -210,3 +211,5 @@ template class DealIIEntityLocalMap<0,3,3>;
 template class DealIIEntityLocalMap<2,2,2>;
 template class DealIIEntityLocalMap<2,2,3>;
 template class DealIIEntityLocalMap<3,3,3>;
+
+} // end namespace DataTransferKit

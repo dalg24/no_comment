@@ -7,12 +7,14 @@
 #include <Teuchos_ArrayView.hpp>
 #include <Teuchos_ParameterList.hpp>
 
+namespace DataTransferKit {
+
 template <int structdim,int dim,int spacedim>
-class DealIIEntityImpl : public DataTransferKit::EntityImpl
+class DealIIEntityImpl : public EntityImpl
 {
 public:
 
-   DealIIEntityImpl(dealii::TriaAccessor<structdim,dim,spacedim> const & tria_accessor,
+   DealIIEntityImpl(DealIIGeom<structdim,dim,spacedim> const & tria_accessor,
        Teuchos::RCP<std::vector<std::set<
        typename dealii::Triangulation<dim,spacedim>::active_cell_iterator>>> vertex_to_cell,
        Teuchos::RCP<std::map<unsigned int, unsigned long long int>> local_to_global_vertex_id);
@@ -21,7 +23,7 @@ public:
      * \brief Get the unique global identifier for the entity.
      * \return A unique global identifier for the entity.
      */
-    DataTransferKit::EntityId id() const override;
+    EntityId id() const override;
     
     /*!
      * \brief Get the parallel rank that owns the entity.
@@ -64,7 +66,7 @@ public:
     /*!
      * \brief Get the extra data on the entity.
      */
-    Teuchos::RCP<DataTransferKit::EntityExtraData> extraData() const override;
+    Teuchos::RCP<EntityExtraData> extraData() const override;
 
     /*!
      * \brief Provide a one line description of the object.
@@ -82,5 +84,7 @@ public:
 private:
     Teuchos::RCP<DealIIEntityExtraData<structdim,dim,spacedim>> extra_data;
 };
+
+} // end namespace DataTransferKit
 
 #endif
