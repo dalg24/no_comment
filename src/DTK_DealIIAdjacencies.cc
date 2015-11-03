@@ -14,16 +14,6 @@ template <int dim,int spacedim>
 DealIIAdjacencies<dim,spacedim>::
 DealIIAdjacencies(Teuchos::RCP<dealii::parallel::distributed::Triangulation<dim,spacedim> const> tria)
 {
-    // checking that dtk has not change its typedef
-    static_assert(
-        std::is_same<DataTransferKit::EntityId,long unsigned int>::value,
-        "dtk entity type is not unsigned long int anymore...");
-    // checking that assumptions on integral type sizes are true
-    static_assert(
-        std::numeric_limits<unsigned long int>::digits ==
-        2 * std::numeric_limits<unsigned int>::digits,
-        "awwww man...");
-
     std::vector<std::set<typename dealii::Triangulation<dim,spacedim>::active_cell_iterator>> vertex_to_cell =
         dealii::GridTools::vertex_to_cell_map(*tria);
 
