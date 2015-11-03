@@ -69,7 +69,7 @@ getAdjacentEntities(
     Teuchos::Array<Entity>& adjacent_entities) const
 {
     if ((entity.physicalDimension() == 0) && (adjacent_dimension  == dim)) {
-        auto ret = d_adjacencies->getElemAdjacentToNode(entity.id());
+        auto ret = adjacencies->getElemAdjacentToNode(entity.id());
         adjacent_entities.resize(std::distance(ret.second.begin(), ret.second.end()));
         auto dtk_entity = adjacent_entities.begin();
         for (auto it = ret.second.begin(); it != ret.second.end(); ++it, ++dtk_entity)

@@ -25,7 +25,7 @@ BOOST_FIXTURE_TEST_CASE( test_DealIIAdjacencies, MPIFixture )
       true);
   tria->refine_global(3);
 
-  DealIIAdjacencies<dim,spacedim> dealii_adjacencies(tria);
+  DataTransferKit::DealIIAdjacencies<dim,spacedim> dealii_adjacencies(tria);
 
   double const tolerance = 1.0e-15;
   dealii::TriaAccessor<0,dim,spacedim> node = dealii_adjacencies.getNodeById(0);

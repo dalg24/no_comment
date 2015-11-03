@@ -19,11 +19,11 @@ DealIIAdjacencies(Teuchos::RCP<DealIIMesh<dim,spacedim> const> tria)
 {
     // checking that dtk has not change its typedef
     static_assert(
-        std::is_same<DataTransferKit::EntityId,long unsigned int>::value,
+        std::is_same<DataTransferKit::EntityId,unsigned long long int>::value,
         "dtk entity type is not unsigned long int anymore...");
     // checking that assumptions on integral type sizes are true
     static_assert(
-        std::numeric_limits<unsigned long int>::digits ==
+        std::numeric_limits<unsigned long long int>::digits ==
         2 * std::numeric_limits<unsigned int>::digits,
         "awwww man...");
 
