@@ -38,10 +38,10 @@ getEntity(const DataTransferKit::EntityId entity_id,
 {
     if (topological_dimension == dim)
         entity = DealIIEntity<dim,dim,spacedim>(
-            *(d_adjacencies->getElemById(entity_id)) );
+            d_adjacencies->getElemById(entity_id) );
     else if (topological_dimension == 0)
         entity = DealIIEntity<  0,dim,spacedim>(
-            *(d_adjacencies->getNodeById(entity_id)) );
+            d_adjacencies->getNodeById(entity_id) );
     else
         throw std::runtime_error("not implemented");
 }
@@ -69,10 +69,10 @@ getAdjacentEntities(
 {
     if ((entity.physicalDimension() == 0) && (adjacent_dimension  == dim)) {
         auto ret = d_adjacencies->getElemAdjacentToNode(entity.id());
-        adjacent_entities.resize(std::distance(ret.first, ret.second));
+        adjacent_entities.resize(std::distance(ret.second.begin(), ret.second.end()));
         auto dtk_entity = adjacent_entities.begin();
-        for (auto it = ret.first; it != ret.second; ++it, ++dtk_entity)
-            *dtk_entity = DealIIEntity<dim,dim,spacedim>(*(it->second));
+        for (auto it = ret.second.begin(); it != ret.second.end(); ++it, ++dtk_entity)
+            *dtk_entity = DealIIEntity<dim,dim,spacedim>(*it);
         AssertThrow(
             dtk_entity == adjacent_entities.end(),
             dealii::ExcMessage("not good") );
