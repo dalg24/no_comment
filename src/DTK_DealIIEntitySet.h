@@ -1,9 +1,10 @@
 #ifndef DTK_DEALIIENTITYSET_HPP
 #define DTK_DEALIIENTITYSET_HPP
 
-#include "DTK_DealIIAdjacencies.h"
-#include "DTK_DealIIEntity.h"
-#include "DTK_DealIIEntityExtraData.h"
+#include <no_comment/DTK_DealIIAdjacencies.h>
+#include <no_comment/DTK_DealIIEntity.h>
+#include <no_comment/DTK_DealIIEntityExtraData.h>
+#include <no_comment/DTK_DealIITypes.h>
 
 #include <DTK_EntitySet.hpp>
 #include <DTK_Types.hpp>
@@ -15,13 +16,13 @@
 #include <Teuchos_Array.hpp>
 #include <Teuchos_Tuple.hpp>
 
-#include <deal.II/distributed/tria.h>
+namespace DataTransferKit {
 
 template <int dim,int spacedim>
-class DealIIEntitySet : public DataTransferKit::EntitySet
+class DealIIEntitySet : public EntitySet
 {
   public:
-    DealIIEntitySet(const Teuchos::RCP<dealii::parallel::distributed::Triangulation<dim,spacedim>>& dealii_mesh);
+    DealIIEntitySet(const Teuchos::RCP<DealIIMesh<dim,spacedim>>& dealii_mesh);
 
     Teuchos::RCP<const Teuchos::Comm<int>> communicator() const override;
 
@@ -44,9 +45,11 @@ class DealIIEntitySet : public DataTransferKit::EntitySet
     { return std::string("deal.II Mesh"); }
 
   private:
-    Teuchos::RCP<dealii::parallel::distributed::Triangulation<dim,spacedim>> d_dealii_triangulation;
+    Teuchos::RCP<DealIIMesh<dim,spacedim>> dealii_triangulation;
 
-    Teuchos::RCP<DealIIAdjacencies<dim,spacedim>> d_adjacencies;
+    Teuchos::RCP<DealIIAdjacencies<dim,spacedim>> adjacencies;
 };
+
+} // end namespace DataTransferKit
 
 #endif

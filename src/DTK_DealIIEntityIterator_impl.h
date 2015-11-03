@@ -4,21 +4,25 @@
 #include <type_traits>
 #include <no_comment/DTK_DealIIEntity.h>
 
-template <typename DealIIGeomIterator,int dim,int spacedim>
-DealIIEntityIterator<DealIIGeomIterator,dim,spacedim>::DealIIEntityIterator()
+namespace DataTransferKit {
+
+template <int structdim,int dim,int spacedim>
+DealIIEntityIterator<structdim,dim,spacedim>::
+DealIIEntityIterator()
 {
   this->b_iterator_impl = nullptr;
 }
 
 
-template <typename DealIIGeomIterator,int dim,int spacedim>
-DealIIEntityIterator<DealIIGeomIterator,dim,spacedim>::DealIIEntityIterator(
-    DealIIGeomIterator dealii_iterator,
-    DealIIGeomIterator dealii_iterator_begin,
-    DealIIGeomIterator dealii_iterator_end,
-    Teuchos::Ptr<dealii::Triangulation<dim,spacedim>> const &dealii_mesh,
+template <int structdim,int dim,int spacedim>
+DealIIEntityIterator<structdim,dim,spacedim>::
+DealIIEntityIterator(
+    DealIIGeomIterator<structdim,dim,spacedim> dealii_iterator,
+    DealIIGeomIterator<structdim,dim,spacedim> dealii_iterator_begin,
+    DealIIGeomIterator<structdim,dim,spacedim> dealii_iterator_end,
+    Teuchos::Ptr<dealii::parallel::distributed::Triangulation<dim,spacedim>> const &dealii_mesh,
     Teuchos::Ptr<DealIIAdjacencies<dim,spacedim>> const &adjacencies,
-    DataTransferKit::PredicateFunction const &predicate)
+    PredicateFunction const &predicate)
   :
     d_dealii_iterator(dealii_iterator),
     d_dealii_iterator_begin(dealii_iterator_begin),
@@ -31,10 +35,10 @@ DealIIEntityIterator<DealIIGeomIterator,dim,spacedim>::DealIIEntityIterator(
 }
 
 
-template <typename DealIIGeomIterator,int dim,int spacedim>
-DealIIEntityIterator<DealIIGeomIterator,dim,spacedim>&
-DealIIEntityIterator<DealIIGeomIterator,dim,spacedim>::operator=(
-    DealIIEntityIterator<DealIIGeomIterator,dim,spacedim> const & rhs)
+template <int structdim,int dim,int spacedim>
+DealIIEntityIterator<structdim,dim,spacedim>&
+DealIIEntityIterator<structdim,dim,spacedim>::
+operator=(DealIIEntityIterator<structdim,dim,spacedim> const & rhs)
 {
   this->b_iterator_impl = nullptr;
   this->b_predicate = rhs.b_predicate;
@@ -50,9 +54,10 @@ DealIIEntityIterator<DealIIGeomIterator,dim,spacedim>::operator=(
 }
 
 
-template <typename DealIIGeomIterator,int dim,int spacedim>
-DataTransferKit::EntityIterator &
-DealIIEntityIterator<DealIIGeomIterator,dim,spacedim>::operator++()
+template <int structdim,int dim,int spacedim>
+EntityIterator &
+DealIIEntityIterator<structdim,dim,spacedim>::
+operator++()
 {
   ++d_dealii_iterator;
 
@@ -60,22 +65,23 @@ DealIIEntityIterator<DealIIGeomIterator,dim,spacedim>::operator++()
 }
 
 
-template <typename DealIIGeomIterator,int dim,int spacedim>
-DataTransferKit::Entity*
-DealIIEntityIterator<DealIIGeomIterator,dim,spacedim>::operator->(void)
+template <int structdim,int dim,int spacedim>
+Entity*
+DealIIEntityIterator<structdim,dim,spacedim>::
+operator->(void)
 {
   // This will probably not work but it compiles which is the most important :-)
   d_current_entity = DealIIEntity<
-         DealIIGeomIterator::structdim,dim,spacedim
+         structdim,dim,spacedim
     >( Teuchos::ptr(*d_dealii_iterator), d_dealii_mesh, d_adjacencies);
 
   return &d_current_entity;
 }
 
 
-template <typename DealIIGeomIterator,int dim,int spacedim>
-bool DealIIEntityIterator<DealIIGeomIterator,dim,spacedim>::operator==(
-    DataTransferKit::EntityIterator const &rhs) const
+template <int structdim,int dim,int spacedim>
+bool DealIIEntityIterator<structdim,dim,spacedim>::
+operator==(EntityIterator const &rhs) const
 {
   DealIIEntityIterator const* rhs_it = 
     static_cast<DealIIEntityIterator const*>(&rhs);
@@ -86,9 +92,9 @@ bool DealIIEntityIterator<DealIIGeomIterator,dim,spacedim>::operator==(
 }
 
 
-template <typename DealIIGeomIterator,int dim,int spacedim>
-bool DealIIEntityIterator<DealIIGeomIterator,dim,spacedim>::operator!=(
-    DataTransferKit::EntityIterator const & rhs) const
+template <int structdim,int dim,int spacedim>
+bool DealIIEntityIterator<structdim,dim,spacedim>::
+operator!=(EntityIterator const & rhs) const
 {
   DealIIEntityIterator const* rhs_it =
     static_cast<DealIIEntityIterator const*>(&rhs);
@@ -99,9 +105,10 @@ bool DealIIEntityIterator<DealIIGeomIterator,dim,spacedim>::operator!=(
 }
 
 
-template <typename DealIIGeomIterator,int dim,int spacedim>
-DataTransferKit::EntityIterator
-DealIIEntityIterator<DealIIGeomIterator,dim,spacedim>::begin() const
+template <int structdim,int dim,int spacedim>
+EntityIterator
+DealIIEntityIterator<structdim,dim,spacedim>::
+begin() const
 {
   return DealIIEntityIterator(d_dealii_iterator_begin,
       d_dealii_iterator_begin,
@@ -113,9 +120,10 @@ DealIIEntityIterator<DealIIGeomIterator,dim,spacedim>::begin() const
 
 
 
-template <typename DealIIGeomIterator,int dim,int spacedim>
-DataTransferKit::EntityIterator
-DealIIEntityIterator<DealIIGeomIterator,dim,spacedim>::end() const
+template <int structdim,int dim,int spacedim>
+EntityIterator
+DealIIEntityIterator<structdim,dim,spacedim>::
+end() const
 {
   return DealIIEntityIterator(d_dealii_iterator_end,
       d_dealii_iterator_begin,
@@ -127,11 +135,14 @@ DealIIEntityIterator<DealIIGeomIterator,dim,spacedim>::end() const
 
 
 
-template <typename DealIIGeomIterator,int dim,int spacedim>
-DataTransferKit::EntityIterator*
-DealIIEntityIterator<DealIIGeomIterator,dim,spacedim>::clone() const
+template <int structdim,int dim,int spacedim>
+EntityIterator*
+DealIIEntityIterator<structdim,dim,spacedim>::
+clone() const
 {
   return new DealIIEntityIterator(*this);
 }
+
+} // end namespace DataTransferKit
 
 #endif

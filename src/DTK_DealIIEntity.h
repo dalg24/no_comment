@@ -2,14 +2,16 @@
 #define DTK_DEALIIENTITY_HPP
 
 #include <DTK_Entity.hpp>
-#include <deal.II/grid/tria_accessor.h>
+#include <no_comment/DTK_DealIITypes.h>
 #include <map>
 
+namespace DataTransferKit {
+
 template <int structdim,int dim,int spacedim>
-class DealIIEntity : public DataTransferKit::Entity
+class DealIIEntity : public Entity
 {
 public:
-    DealIIEntity(dealii::TriaAccessor<structdim,dim,spacedim> const & dealii_tria_accessor,
+    DealIIEntity(DealIIGeom<structdim,dim,spacedim> const & dealii_tria_accessor,
         Teuchos::RCP<std::vector<std::set<
         typename dealii::Triangulation<dim,spacedim>::active_cell_iterator>>> 
         vertex_to_cell = Teuchos::ENull::null,
@@ -17,5 +19,7 @@ public:
         local_to_global_vertex_id = Teuchos::ENull::null);
 
 };
+
+} // end namespace DataTransferKit
 
 #endif

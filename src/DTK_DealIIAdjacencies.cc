@@ -8,11 +8,11 @@
 #include <limits>
 #include <sstream> 
 
-// TODO: move these static assert somewhere else
+namespace DataTransferKit {
 
 template <int dim,int spacedim>
 DealIIAdjacencies<dim,spacedim>::
-DealIIAdjacencies(Teuchos::RCP<dealii::parallel::distributed::Triangulation<dim,spacedim> const> tria)
+DealIIAdjacencies(Teuchos::RCP<DealIIMesh<dim,spacedim> const> tria)
   :
     tria(tria),
     vertex_to_cell(dealii::GridTools::vertex_to_cell_map(*tria))
@@ -50,7 +50,7 @@ DealIIAdjacencies(Teuchos::RCP<dealii::parallel::distributed::Triangulation<dim,
 template <int dim,int spacedim>
 dealii::TriaAccessor<0,dim,spacedim>
 DealIIAdjacencies<dim,spacedim>::
-getNodeById(DataTransferKit::EntityId const id) const
+getNodeById(EntityId const id) const
 {
     auto ret = global_to_local_vertex_id.find(id);
     AssertThrow(
@@ -64,7 +64,7 @@ getNodeById(DataTransferKit::EntityId const id) const
 template <int dim,int spacedim>
 dealii::TriaAccessor<dim,dim,spacedim>
 DealIIAdjacencies<dim,spacedim>::
-getElemById(DataTransferKit::EntityId const id) const
+getElemById(EntityId const id) const
 {
     auto ret = elem_id_to_lvl_index.find(id);
     AssertThrow(
@@ -80,7 +80,7 @@ template <int dim,int spacedim>
 std::pair<dealii::TriaAccessor<0,dim,spacedim>,
   std::vector<dealii::TriaAccessor<dim,dim,spacedim>>>
 DealIIAdjacencies<dim,spacedim>::
-getElemAdjacentToNode(DataTransferKit::EntityId const id) const
+getElemAdjacentToNode(EntityId const id) const
 {
     auto ret = global_to_local_vertex_id.find(id);
     AssertThrow(
@@ -99,7 +99,8 @@ getElemAdjacentToNode(DataTransferKit::EntityId const id) const
       std::vector<dealii::TriaAccessor<dim,dim,spacedim>>> (node,adjacent_elem);
 }
 
-
 template class DealIIAdjacencies<2,2>;
 template class DealIIAdjacencies<2,3>;
 template class DealIIAdjacencies<3,3>;
+
+} // end namespace DataTransferKit

@@ -1,56 +1,60 @@
 #ifndef DTK_DEALIIENTITYITERATOR_H
 #define DTK_DEALIIENTITYITERATOR_H
       
-#include "no_comment/DTK_DealIIAdjacencies.h"
+#include <no_comment/DTK_DealIIAdjacencies.h>
 #include <DTK_EntityIterator.hpp>
 #include <DTK_Entity.hpp>
 #include <Teuchos_Ptr.hpp>
 
-template <typename DealIIGeomIterator,int dim,int spacedim>
-class DealIIEntityIterator : public DataTransferKit::EntityIterator
+namespace DataTransferKit {
+
+template <int structdim,int dim,int spacedim>
+class DealIIEntityIterator : public EntityIterator
 {
   public:
     DealIIEntityIterator();
 
     DealIIEntityIterator(
-        DealIIGeomIterator dealii_iterator,
-        DealIIGeomIterator dealii_iterator_begin,
-        DealIIGeomIterator dealii_iterator_end,
-        Teuchos::Ptr<dealii::Triangulation<dim,spacedim>> const &dealii_mesh,
+        DealIIGeomIterator<structdim,dim,spacedim> dealii_iterator,
+        DealIIGeomIterator<structdim,dim,spacedim> dealii_iterator_begin,
+        DealIIGeomIterator<structdim,dim,spacedim> dealii_iterator_end,
+        Teuchos::Ptr<DealIIMesh<dim,spacedim>> const &dealii_mesh,
         Teuchos::Ptr<DealIIAdjacencies<dim,spacedim>> const &adjacencies,
-        DataTransferKit::PredicateFunction const &predicate);
+        PredicateFunction const &predicate);
 
-    DealIIEntityIterator(DealIIEntityIterator<DealIIGeomIterator,dim,spacedim> const &rhs);
+    DealIIEntityIterator(DealIIEntityIterator<structdim,dim,spacedim> const &rhs);
 
-    DealIIEntityIterator<DealIIGeomIterator,dim,spacedim> &
-      operator= (DealIIEntityIterator<DealIIGeomIterator,dim,spacedim> const &rhs);
+    DealIIEntityIterator<structdim,dim,spacedim> &
+      operator= (DealIIEntityIterator<structdim,dim,spacedim> const &rhs);
 
     ~DealIIEntityIterator();
 
-    DataTransferKit::EntityIterator& operator++() override;
+    EntityIterator& operator++() override;
 
-    DataTransferKit::Entity& operator*(void) override;
+    Entity& operator*(void) override;
 
-    DataTransferKit::Entity* operator->(void) override;
+    Entity* operator->(void) override;
 
-    bool operator== (DataTransferKit::EntityIterator const &rhs) const override;
+    bool operator== (EntityIterator const &rhs) const override;
 
-    bool operator!= (DataTransferKit::EntityIterator const &rhs) const override;
+    bool operator!= (EntityIterator const &rhs) const override;
 
-    DataTransferKit::EntityIterator begin() const override;
+    EntityIterator begin() const override;
 
-    DataTransferKit::EntityIterator end() const override;
+    EntityIterator end() const override;
 
-    DataTransferKit::EntityIterator* clone() const override;
+    EntityIterator* clone() const override;
 
   private:
-    DealIIGeomIterator d_dealii_iterator;
-    DealIIGeomIterator d_dealii_iterator_begin;
-    DealIIGeomIterator d_dealii_iterator_end;
-    Teuchos::Ptr<dealii::Triangulation<dim,spacedim>> d_dealii_mesh;
+    DealIIGeomIterator<structdim,dim,spacedim> d_dealii_iterator;
+    DealIIGeomIterator<structdim,dim,spacedim> d_dealii_iterator_begin;
+    DealIIGeomIterator<structdim,dim,spacedim> d_dealii_iterator_end;
+    Teuchos::Ptr<DealIIMesh<dim,spacedim>> d_dealii_mesh;
     Teuchos::Ptr<DealIIAdjacencies<dim,spacedim>> d_adjacencies;
-    DataTransferKit::Entity d_current_entity;
+    Entity d_current_entity;
 };
+
+} // end namespace DataTransferKit
 
 #include "DTK_DealIIEntityIterator_impl.h"
 

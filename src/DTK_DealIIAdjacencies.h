@@ -5,13 +5,15 @@
 #include <deal.II/distributed/tria.h>
 #include <unordered_map>
 
+namespace DataTransferKit {
+
 template <int dim,int spacedim>
 class DealIIAdjacencies
 {
-using Node = dealii::TriaAccessor<  0,dim,spacedim>;
-using Elem = dealii::TriaAccessor<dim,dim,spacedim>;
+using Node = DealIINode<dim,spacedim>;
+using Elem = DealIIElem<dim,spacedim>;
 public:
-    DealIIAdjacencies(Teuchos::RCP<dealii::parallel::distributed::Triangulation<dim,spacedim> const> tria);
+    DealIIAdjacencies(Teuchos::RCP<DealIIMesh<dim,spacedim> const> dealii_mesh);
 
     Node getNodeById(DataTransferKit::EntityId const id) const;
     Elem getElemById(DataTransferKit::EntityId const id) const;
@@ -24,5 +26,6 @@ private:
     std::vector<std::set<typename dealii::Triangulation<dim,spacedim>::active_cell_iterator>> 
       vertex_to_cell;
 };
+} // end namespace DataTransferKit
 
 #endif

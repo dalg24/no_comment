@@ -1,7 +1,7 @@
 #include <no_comment/DTK_DealIIEntityImpl.h>
 #include <deal.II/base/geometry_info.h>
 
-
+namespace DataTransferKit {
 
 // Partial specialization of a function is forbidden, so we delegue the work to
 // some classes that can be specialized
@@ -13,13 +13,13 @@ namespace internal
   template <int structdim,int dim,int spacedim>
   struct Entity
   {
-    static DataTransferKit::EntityId id(
+    static EntityId id(
         Teuchos::RCP<DealIIEntityExtraData<structdim,dim,spacedim>> extra_data)
     {
       auto dealii_tria_accessor =
         Teuchos::rcp_dynamic_cast<DealIIEntityExtraData<structdim,dim,spacedim>>
             (extra_data)->dealii_tria_accessor;
-      DataTransferKit::EntityId entity_id = 0;
+      EntityId entity_id = 0;
 
       if (structdim == dim) 
       {
@@ -98,13 +98,13 @@ namespace internal
   template <int dim,int spacedim>
   struct Entity<0,dim,spacedim>
   {
-    static DataTransferKit::EntityId id(
+    static EntityId id(
         Teuchos::RCP<DealIIEntityExtraData<0,dim,spacedim>> extra_data)
     {
       auto dealii_tria_accessor =
         Teuchos::rcp_dynamic_cast<DealIIEntityExtraData<0,dim,spacedim>>
             (extra_data)->dealii_tria_accessor;
-      DataTransferKit::EntityId entity_id =
+      EntityId entity_id =
         (*(extra_data->dealii_local_to_global_vertex_id))[dealii_tria_accessor.vertex_index()];
 
       return entity_id; 
@@ -183,7 +183,7 @@ DealIIEntityImpl(dealii::TriaAccessor<structdim,dim,spacedim> const & tria_acces
 
 
 template <int structdim,int dim,int spacedim>
-DataTransferKit::EntityId
+EntityId
 DealIIEntityImpl<structdim,dim,spacedim>::
 id() const
 {
@@ -263,7 +263,7 @@ onBoundary( const int boundary_id ) const
 
 
 template <int structdim,int dim,int spacedim>
-Teuchos::RCP<DataTransferKit::EntityExtraData>
+Teuchos::RCP<EntityExtraData>
 DealIIEntityImpl<structdim,dim,spacedim>::
 extraData() const
 { 
@@ -297,3 +297,4 @@ template class DealIIEntityImpl<2,2,2>;
 template class DealIIEntityImpl<2,2,3>;
 template class DealIIEntityImpl<3,3,3>;
 
+} // end namesapce DataTransferKit
