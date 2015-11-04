@@ -1,12 +1,11 @@
 #define BOOST_TEST_MODULE DealIIEntity
 #define BOOST_TEST_MAIN
+#include <no_comment/DTK_DealIIEntity.h>
 #include <Teuchos_VerboseObject.hpp>
 #include <Teuchos_FancyOStream.hpp>
-#include <boost/test/unit_test.hpp>
 #include <deal.II/grid/grid_generator.h>
 #include <deal.II/grid/grid_tools.h>
-#include <deal.II/base/mpi.h>
-#include <no_comment/DTK_DealIIEntity.h>
+#include <boost/test/unit_test.hpp>
 
 #include "MPIFixture.cc"
 
@@ -24,13 +23,16 @@ BOOST_FIXTURE_TEST_CASE( test_DealIIEntity_cell, MPIFixture )
         dealii::Point<spacedim>( 0.0,  0.0,  0.0),
         true);
 
+    // Advance iterator to a locally owned element
     auto tria_iterator = dealii_mesh.begin_active();
     while (tria_iterator != dealii_mesh.end())
     {
-        if (tria_iterator->is_locally_owned()) break;
+        if (tria_iterator->is_locally_owned())
+            break;
         ++tria_iterator;
     }
 
+    // Ensure the iterator does not point to the end before dereferencing
     bool iterator_points_to_the_end = false;
     if ( tria_iterator != dealii_mesh.end() )
     {
@@ -41,8 +43,8 @@ BOOST_FIXTURE_TEST_CASE( test_DealIIEntity_cell, MPIFixture )
             DataTransferKit::DealIIEntity<structdim,dim,spacedim>(tria_accessor);
 
         // Print out the entity.
-        Teuchos::RCP<Teuchos::FancyOStream>
-            fancy_os = Teuchos::VerboseObjectBase::getDefaultOStream();
+        Teuchos::RCP<Teuchos::FancyOStream> fancy_os =
+            Teuchos::VerboseObjectBase::getDefaultOStream();
         dtk_entity.describe( *fancy_os );
 
         // Check topological and physical dimensions
