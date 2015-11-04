@@ -1,5 +1,5 @@
 #define BOOST_TEST_MODULE DealIIEntitySet
-#define BOOST_TEST_MAIN
+#include "main_included.cc"
 #include <Teuchos_VerboseObject.hpp>
 #include <Teuchos_FancyOStream.hpp>
 #include <boost/test/unit_test.hpp>
@@ -11,15 +11,14 @@
 #include <no_comment/DTK_DealIIEntitySet.h>
 #include <functional>
 
-#include "MPIFixture.cc"
-
-BOOST_FIXTURE_TEST_CASE( test_DealIIEntitySet, MPIFixture )
+BOOST_AUTO_TEST_CASE( test_DealIIEntitySet )
 {
     // Probably want to call templated function
     int const dim = 3;
     int const spacedim = 3;
 
     // Build a mesh
+    boost::mpi::communicator world;
     Teuchos::RCP<DataTransferKit::DealIIMesh<dim,spacedim>> dealii_mesh =
         Teuchos::rcp(new DataTransferKit::DealIIMesh<dim,spacedim>(world));
 

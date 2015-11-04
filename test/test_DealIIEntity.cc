@@ -1,20 +1,21 @@
 #define BOOST_TEST_MODULE DealIIEntity
-#define BOOST_TEST_MAIN
+#include "main_included.cc"
 #include <no_comment/DTK_DealIIEntity.h>
 #include <Teuchos_VerboseObject.hpp>
 #include <Teuchos_FancyOStream.hpp>
 #include <deal.II/grid/grid_generator.h>
 #include <deal.II/grid/grid_tools.h>
 #include <boost/test/unit_test.hpp>
+#include <boost/mpi.hpp>
 
-#include "MPIFixture.cc"
-
-BOOST_FIXTURE_TEST_CASE( test_DealIIEntity_cell, MPIFixture )
+BOOST_AUTO_TEST_CASE( test_DealIIEntity_elem )
 {
     // Probably want to call templated function
     int const structdim = 3;
     int const dim = 3;
     int const spacedim = 3;
+
+    boost::mpi::communicator world;
 
     // Build a mesh
     DataTransferKit::DealIIMesh<dim,spacedim> dealii_mesh(world);
@@ -23,7 +24,7 @@ BOOST_FIXTURE_TEST_CASE( test_DealIIEntity_cell, MPIFixture )
         dealii::Point<spacedim>( 0.0,  0.0,  0.0),
         true);
 
-    // Advance iterator to a locally owned element
+    // Advance iterator to an element that is locally owned
     auto tria_iterator = dealii_mesh.begin_active();
     while (tria_iterator != dealii_mesh.end())
     {
@@ -85,13 +86,14 @@ BOOST_FIXTURE_TEST_CASE( test_DealIIEntity_cell, MPIFixture )
     BOOST_CHECK( !boost::mpi::all_reduce(world, iterator_points_to_the_end, std::logical_and<bool>()) );
 }
 
-// TODO: FIX THE NODE TEST
-BOOST_FIXTURE_TEST_CASE( test_DealIIEntity_node, MPIFixture )
+BOOST_AUTO_TEST_CASE( test_DealIIEntity_node )
 {
     // Probably want to call templated function
     int const structdim = 0;
     int const dim = 3;
     int const spacedim = 3;
+
+    boost::mpi::communicator world;
 
     // Build a distributed mesh
     DataTransferKit::DealIIMesh<dim,spacedim> dealii_mesh(world);
@@ -100,16 +102,16 @@ BOOST_FIXTURE_TEST_CASE( test_DealIIEntity_node, MPIFixture )
         dealii::Point<spacedim>( 0.0,  0.0,  0.0),
         true);
 
-    // Advance iterator to a cell that is locally owned
+    // Advance iterator to an element that is locally owned
     auto tria_iterator = dealii_mesh.begin_active();
     while (tria_iterator != dealii_mesh.end())
     {
-        if (tria_iterator->is_locally_owned()) break;
+        if (tria_iterator->is_locally_owned())
+            break;
         ++tria_iterator;
     }
 
-    auto tria_accessor = *tria_iterator;
-
+    // These needs to be executed by all processes so I moved them up here
     auto vertex_to_cell = dealii::GridTools::vertex_to_cell_map(dealii_mesh);
     auto local_to_global_vertex_id =
       dealii::GridTools::compute_local_to_global_vertex_index_map(dealii_mesh);
@@ -119,52 +121,63 @@ BOOST_FIXTURE_TEST_CASE( test_DealIIEntity_node, MPIFixture )
     Teuchos::RCP<std::map<unsigned int, unsigned long long int>>
       teuchos_local_to_global_vertex_id = Teuchos::rcpFromRef(local_to_global_vertex_id);
 
-    bool boundary[8][6] =
+    // Ensure the iterator does not point to the end before dereferencing
+    bool iterator_points_to_the_end = false;
+    if ( tria_iterator != dealii_mesh.end() )
     {
-      {true,  false, true,  false, true,  false},
-      {false, true,  true,  false, true,  false},
-      {true,  false, false, true,  true,  false},
-      {false, true,  false, true,  true,  false},
-      {true,  false, true,  false, false, true },
-      {false, true,  true,  false, false, true },
-      {true,  false, false, true,  false, true },
-      {false, true,  false, true,  false, true },
-    };
+        auto tria_accessor = *tria_iterator;
 
-    // Create a dtk entity for some vertices
-    for (unsigned int i=0; i<8; ++i)
-    {
-      auto vertex_iterator = tria_accessor.vertex_iterator(i);
-      DataTransferKit::Entity dtk_entity =
-        DataTransferKit::DealIIEntity<structdim,dim,spacedim>(*vertex_iterator, teuchos_vertex_to_cell,
-            teuchos_local_to_global_vertex_id);
-      // Print out the entity.
-      Teuchos::RCP<Teuchos::FancyOStream>
-        fancy_os = Teuchos::VerboseObjectBase::getDefaultOStream();
-      dtk_entity.describe( *fancy_os );
+        bool nodeOnBoundary[8][6] =
+        {
+          {true,  false, true,  false, true,  false},
+          {false, true,  true,  false, true,  false},
+          {true,  false, false, true,  true,  false},
+          {false, true,  false, true,  true,  false},
+          {true,  false, true,  false, false, true },
+          {false, true,  true,  false, false, true },
+          {true,  false, false, true,  false, true },
+          {false, true,  false, true,  false, true },
+        };
 
-      // Check topological and physical dimensions
-      BOOST_CHECK_EQUAL( dtk_entity.topologicalDimension(), dim      );
-      BOOST_CHECK_EQUAL( dtk_entity.physicalDimension()   , spacedim );
+        // Create a dtk entity for some vertices
+        for (unsigned int i=0; i<8; ++i)
+        {
+          auto vertex_iterator = tria_accessor.vertex_iterator(i);
+          DataTransferKit::Entity dtk_entity =
+            DataTransferKit::DealIIEntity<structdim,dim,spacedim>(*vertex_iterator, teuchos_vertex_to_cell,
+                teuchos_local_to_global_vertex_id);
+          // Print out the entity.
+          Teuchos::RCP<Teuchos::FancyOStream> fancy_os =
+              Teuchos::VerboseObjectBase::getDefaultOStream();
+          dtk_entity.describe( *fancy_os );
 
-      // Bounding box
-      Teuchos::Tuple<double,6> bounding_box;
-      dtk_entity.boundingBox(bounding_box);
+          // Check topological and physical dimensions
+          BOOST_CHECK_EQUAL( dtk_entity.topologicalDimension(), dim      );
+          BOOST_CHECK_EQUAL( dtk_entity.physicalDimension()   , spacedim );
 
-      double const tolerance = 1.0e-15;
-      BOOST_CHECK_SMALL( vertex_iterator->center()[0] - bounding_box[0], tolerance );
-      BOOST_CHECK_SMALL( vertex_iterator->center()[1] - bounding_box[1], tolerance );
-      BOOST_CHECK_SMALL( vertex_iterator->center()[2] - bounding_box[2], tolerance );
-      BOOST_CHECK_SMALL( vertex_iterator->center()[0] - bounding_box[3], tolerance );
-      BOOST_CHECK_SMALL( vertex_iterator->center()[1] - bounding_box[4], tolerance );
-      BOOST_CHECK_SMALL( vertex_iterator->center()[2] - bounding_box[5], tolerance );
+          // Bounding box
+          Teuchos::Tuple<double,6> bounding_box;
+          dtk_entity.boundingBox(bounding_box);
 
-      // Block id and boundary id
-      BOOST_CHECK(  dtk_entity.inBlock(0) );
-      BOOST_CHECK( !dtk_entity.inBlock(1) );
-      BOOST_CHECK( !dtk_entity.inBlock(2) );
+          double const tolerance = 1.0e-15;
+          BOOST_CHECK_SMALL( vertex_iterator->center()[0] - bounding_box[0], tolerance );
+          BOOST_CHECK_SMALL( vertex_iterator->center()[1] - bounding_box[1], tolerance );
+          BOOST_CHECK_SMALL( vertex_iterator->center()[2] - bounding_box[2], tolerance );
+          BOOST_CHECK_SMALL( vertex_iterator->center()[0] - bounding_box[3], tolerance );
+          BOOST_CHECK_SMALL( vertex_iterator->center()[1] - bounding_box[4], tolerance );
+          BOOST_CHECK_SMALL( vertex_iterator->center()[2] - bounding_box[5], tolerance );
 
-      for (unsigned int j=0; j<6; ++j)
-      BOOST_CHECK(  dtk_entity.onBoundary(j) == boundary[i][j] );
+          // Block id and boundary id
+          BOOST_CHECK(  dtk_entity.inBlock(0) );
+          BOOST_CHECK( !dtk_entity.inBlock(1) );
+          BOOST_CHECK( !dtk_entity.inBlock(2) );
+
+          for (unsigned int j=0; j<6; ++j)
+          BOOST_CHECK(  dtk_entity.onBoundary(j) == nodeOnBoundary[i][j] );
+        }
+    } else {
+        iterator_points_to_the_end = true;
     }
+    // Ensure at least one process went through the if statement
+    BOOST_CHECK( !boost::mpi::all_reduce(world, iterator_points_to_the_end, std::logical_and<bool>()) );
 }

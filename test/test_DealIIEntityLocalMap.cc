@@ -1,5 +1,5 @@
 #define BOOST_TEST_MODULE DealIIEntityLocalMap
-#define BOOST_TEST_MAIN
+#include "main_included.cc"
 #include <boost/test/unit_test.hpp>
 #include <deal.II/grid/tria.h>
 #include <deal.II/grid/grid_generator.h>
@@ -7,9 +7,7 @@
 #include <no_comment/DTK_DealIIEntity.h>
 #include <no_comment/DTK_DealIIEntityLocalMap.h>
 
-#include "MPIFixture.cc"
-
-BOOST_FIXTURE_TEST_CASE( test_DealIIEntityLocalMap, MPIFixture )
+BOOST_AUTO_TEST_CASE( test_DealIIEntityLocalMap )
 {
     // Probably want to call templated function
     int const structdim = 3;
@@ -17,6 +15,7 @@ BOOST_FIXTURE_TEST_CASE( test_DealIIEntityLocalMap, MPIFixture )
     int const spacedim = 3;
 
     // Build a mesh
+    boost::mpi::communicator world;
     DataTransferKit::DealIIMesh<dim,spacedim> dealii_tria(world);
     dealii::GridGenerator::hyper_rectangle(dealii_tria,
         dealii::Point<spacedim>(-1.0, -2.0, -3.0),

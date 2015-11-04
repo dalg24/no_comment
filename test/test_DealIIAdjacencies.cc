@@ -1,5 +1,5 @@
 #define BOOST_TEST_MODULE DealIIAdjacencies
-#define BOOST_TEST_MAIN
+#include "main_included.cc"
 #include <no_comment/DTK_DealIIAdjacencies.h>
 #include <deal.II/distributed/tria.h>
 #include <deal.II/grid/grid_generator.h>
@@ -7,15 +7,14 @@
 #include <deal.II/base/mpi.h>
 #include <boost/test/unit_test.hpp>
 
-#include "MPIFixture.cc"
-
-BOOST_FIXTURE_TEST_CASE( test_DealIIAdjacencies, MPIFixture )
+BOOST_AUTO_TEST_CASE( test_DealIIAdjacencies )
 {
   // Probably want to call templated function
   int const dim = 3;
   int const spacedim = 3;
 
   // Build a mesh
+  boost::mpi::communicator world;
   Teuchos::RCP<DataTransferKit::DealIIMesh<dim,spacedim>> tria =
     Teuchos::rcp(new DataTransferKit::DealIIMesh<dim,spacedim>(world));
 
