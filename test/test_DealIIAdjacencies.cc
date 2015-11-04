@@ -40,15 +40,15 @@ BOOST_FIXTURE_TEST_CASE( test_DealIIAdjacencies, MPIFixture )
   unsigned int level = 3;
   unsigned int index = 2;
   dealii::TriaAccessor<dim,dim,spacedim> elem_accessor(tria.get(), level, index);
-  DealIIEntity<dim,dim,spacedim> elem_entity(elem_accessor);
+  DataTransferKit::DealIIEntity<dim,dim,spacedim> elem_entity(elem_accessor);
   dealii::TriaAccessor<dim,dim,spacedim> elem = dealii_adjacencies.getElemById(
     elem_entity.id());
   BOOST_CHECK_EQUAL(elem.level(),level);
   BOOST_CHECK_EQUAL(elem.index(),index);
 
 
-  std::pair<dealii::TriaAccessor<0,dim,spacedim>, std::vector<
-    dealii::TriaAccessor<dim,dim,spacedim>>> node_elems =
+  std::pair<DataTransferKit::DealIINode<dim,spacedim>, std::vector<
+    DataTransferKit::DealIIElem<dim,spacedim>>> node_elems =
     dealii_adjacencies.getElemAdjacentToNode(705);
   BOOST_CHECK_SMALL(node_elems.first.vertex()[0]+0.125,tolerance);
   BOOST_CHECK_SMALL(node_elems.first.vertex()[1]+0.75,tolerance);
