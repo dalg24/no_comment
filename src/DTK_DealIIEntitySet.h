@@ -21,7 +21,7 @@ namespace DataTransferKit {
 template <int dim,int spacedim>
 class DealIIEntitySet : public EntitySet
 {
-  public:
+public:
     DealIIEntitySet(const Teuchos::RCP<DealIIMesh<dim,spacedim>>& dealii_mesh);
 
     Teuchos::RCP<const Teuchos::Comm<int>> communicator() const override;
@@ -41,10 +41,9 @@ class DealIIEntitySet : public EntitySet
         const int adjacent_dimension,
         Teuchos::Array<DataTransferKit::Entity>& adjacent_entities) const override;
 
-    std::string description() const
-    { return std::string("deal.II Mesh"); }
+    std::string description() const override;
 
-  private:
+private:
     Teuchos::RCP<DealIIMesh<dim,spacedim>> dealii_triangulation;
 
     Teuchos::RCP<DealIIAdjacencies<dim,spacedim>> adjacencies;

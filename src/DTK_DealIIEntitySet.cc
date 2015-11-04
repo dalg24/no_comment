@@ -82,6 +82,14 @@ getAdjacentEntities(
     }
 }
 
+template <int dim,int spacedim>
+std::string
+DealIIEntitySet<dim,spacedim>::
+description() const
+{
+    return std::string("deal.II Mesh");
+}
+
 template class DealIIEntitySet<3,3>;
 
 } // end namespace DataTransferKit
