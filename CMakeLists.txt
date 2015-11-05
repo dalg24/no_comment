@@ -47,6 +47,9 @@ FIND_PACKAGE(Boost 1.55.0 REQUIRED
     COMPONENTS
     unit_test_framework
     mpi
+    timer
+    serialization
+    chrono
     )
 MESSAGE("Boost_LIBRARIES=${Boost_LIBRARIES}")
 MESSAGE("Boost_INCLUDE_DIRS=${Boost_INCLUDE_DIRS}")
@@ -60,5 +63,6 @@ ADD_LIBRARY(no_comment
     src/DTK_DealIIAdjacencies.cc
     src/DTK_DealIIEntitySet.cc
     )
+#SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 ENABLE_TESTING()
 ADD_SUBDIRECTORY(test)
