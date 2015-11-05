@@ -1,8 +1,10 @@
 #ifndef DTK_DEALIIENTITY_HPP
 #define DTK_DEALIIENTITY_HPP
 
-#include <DTK_Entity.hpp>
+#include <no_comment/DTK_DealIIAdjacencies.h>
 #include <no_comment/DTK_DealIITypes.h>
+#include <DTK_Entity.hpp>
+#include <Teuchos_RCP.hpp>
 #include <map>
 
 namespace DataTransferKit {
@@ -12,12 +14,7 @@ class DealIIEntity : public Entity
 {
 public:
     DealIIEntity(DealIIGeom<structdim,dim,spacedim> const & dealii_tria_accessor,
-        Teuchos::RCP<std::vector<std::set<
-        typename dealii::Triangulation<dim,spacedim>::active_cell_iterator>>> 
-        vertex_to_cell = Teuchos::ENull::null,
-        Teuchos::RCP<std::map<unsigned int, unsigned long long int>> 
-        local_to_global_vertex_id = Teuchos::ENull::null);
-
+                 Teuchos::RCP<DealIIAdjacencies<dim,spacedim> const> adjacencies);
 };
 
 } // end namespace DataTransferKit

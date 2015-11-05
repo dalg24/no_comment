@@ -1,5 +1,6 @@
 #define BOOST_TEST_MODULE DealIIAdjacencies
 #include "main_included.cc"
+#include <no_comment/DTK_DealIIEntity.h>
 #include <no_comment/DTK_DealIIAdjacencies.h>
 #include <deal.II/distributed/tria.h>
 #include <deal.II/grid/grid_generator.h>
@@ -16,7 +17,7 @@ BOOST_AUTO_TEST_CASE( test_DealIIAdjacencies )
   // Build a mesh
   boost::mpi::communicator world;
   Teuchos::RCP<DataTransferKit::DealIIMesh<dim,spacedim>> tria =
-    Teuchos::rcp(new DataTransferKit::DealIIMesh<dim,spacedim>(world));
+      Teuchos::rcp(new DataTransferKit::DealIIMesh<dim,spacedim>(world));
 
   dealii::GridGenerator::hyper_rectangle(*tria,
       dealii::Point<spacedim>(-1.0, -2.0, -3.0),
@@ -24,14 +25,15 @@ BOOST_AUTO_TEST_CASE( test_DealIIAdjacencies )
       true);
   tria->refine_global(3);
 
-  DataTransferKit::DealIIAdjacencies<dim,spacedim> dealii_adjacencies(tria);
+  Teuchos::RCP<DataTransferKit::DealIIAdjacencies<dim,spacedim>> dealii_adjacencies =
+      Teuchos::rcp(new DataTransferKit::DealIIAdjacencies<dim,spacedim>(tria));
 
   double const tolerance = 1.0e-15;
-  dealii::TriaAccessor<0,dim,spacedim> node = dealii_adjacencies.getNodeById(0);
+  dealii::TriaAccessor<0,dim,spacedim> node = dealii_adjacencies->getNodeById(0);
   BOOST_CHECK_SMALL(node.vertex()[0]+1.,tolerance);
   BOOST_CHECK_SMALL(node.vertex()[1]+2.,tolerance);
   BOOST_CHECK_SMALL(node.vertex()[2]+3.,tolerance);
-  node = dealii_adjacencies.getNodeById(705);
+  node = dealii_adjacencies->getNodeById(705);
   BOOST_CHECK_SMALL(node.vertex()[0]+0.125,tolerance);
   BOOST_CHECK_SMALL(node.vertex()[1]+0.75,tolerance);
   BOOST_CHECK_SMALL(node.vertex()[2]+0.375,tolerance);
@@ -39,16 +41,17 @@ BOOST_AUTO_TEST_CASE( test_DealIIAdjacencies )
   unsigned int level = 3;
   unsigned int index = 2;
   dealii::TriaAccessor<dim,dim,spacedim> elem_accessor(tria.get(), level, index);
-  DataTransferKit::DealIIEntity<dim,dim,spacedim> elem_entity(elem_accessor);
-  dealii::TriaAccessor<dim,dim,spacedim> elem = dealii_adjacencies.getElemById(
+  DataTransferKit::DealIIEntity<dim,dim,spacedim> elem_entity(elem_accessor,
+    dealii_adjacencies);
+  dealii::TriaAccessor<dim,dim,spacedim> elem = dealii_adjacencies->getElemById(
     elem_entity.id());
   BOOST_CHECK_EQUAL(elem.level(),level);
   BOOST_CHECK_EQUAL(elem.index(),index);
 
 
   std::pair<DataTransferKit::DealIINode<dim,spacedim>, std::vector<
-    DataTransferKit::DealIIElem<dim,spacedim>>> node_elems =
-    dealii_adjacencies.getElemAdjacentToNode(705);
+    dealii::TriaActiveIterator<dealii::CellAccessor<dim,spacedim>>>> node_elems =
+    dealii_adjacencies->getElemAdjacentToNode(705);
   BOOST_CHECK_SMALL(node_elems.first.vertex()[0]+0.125,tolerance);
   BOOST_CHECK_SMALL(node_elems.first.vertex()[1]+0.75,tolerance);
   BOOST_CHECK_SMALL(node_elems.first.vertex()[2]+0.375,tolerance);
@@ -56,8 +59,8 @@ BOOST_AUTO_TEST_CASE( test_DealIIAdjacencies )
   index = 488;
   for (auto adjacent_elem : node_elems.second)
   {
-    BOOST_CHECK_EQUAL(adjacent_elem.level(),level);
-    BOOST_CHECK_EQUAL(adjacent_elem.index(),index);
+    BOOST_CHECK_EQUAL(adjacent_elem->level(),level);
+    BOOST_CHECK_EQUAL(adjacent_elem->index(),index);
     ++index;
   }
 }

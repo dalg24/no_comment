@@ -18,15 +18,19 @@ BOOST_AUTO_TEST_CASE( test_DealIIEntity_elem )
     boost::mpi::communicator world;
 
     // Build a mesh
-    DataTransferKit::DealIIMesh<dim,spacedim> dealii_mesh(world);
-    dealii::GridGenerator::hyper_rectangle(dealii_mesh,
+    Teuchos::RCP<DataTransferKit::DealIIMesh<dim,spacedim>> dealii_mesh =
+        Teuchos::rcp(new DataTransferKit::DealIIMesh<dim,spacedim>(world));
+    dealii::GridGenerator::hyper_rectangle(*dealii_mesh,
         dealii::Point<spacedim>(-1.0, -2.0, -3.0),
         dealii::Point<spacedim>( 0.0,  0.0,  0.0),
         true);
 
+    Teuchos::RCP<DataTransferKit::DealIIAdjacencies<dim,spacedim>> adjacencies =
+        Teuchos::rcp(new DataTransferKit::DealIIAdjacencies<dim,spacedim>(dealii_mesh));
+
     // Advance iterator to an element that is locally owned
-    auto tria_iterator = dealii_mesh.begin_active();
-    while (tria_iterator != dealii_mesh.end())
+    auto tria_iterator = dealii_mesh->begin_active();
+    while (tria_iterator != dealii_mesh->end())
     {
         if (tria_iterator->is_locally_owned())
             break;
@@ -35,13 +39,13 @@ BOOST_AUTO_TEST_CASE( test_DealIIEntity_elem )
 
     // Ensure the iterator does not point to the end before dereferencing
     bool iterator_points_to_the_end = false;
-    if ( tria_iterator != dealii_mesh.end() )
+    if ( tria_iterator != dealii_mesh->end() )
     {
         auto tria_accessor = *tria_iterator;
 
         // Create a dtk entity for the single volume element in the mesh
         DataTransferKit::Entity dtk_entity =
-            DataTransferKit::DealIIEntity<structdim,dim,spacedim>(tria_accessor);
+            DataTransferKit::DealIIEntity<structdim,dim,spacedim>(tria_accessor, adjacencies);
 
         // Print out the entity.
         Teuchos::RCP<Teuchos::FancyOStream> fancy_os =
@@ -95,16 +99,20 @@ BOOST_AUTO_TEST_CASE( test_DealIIEntity_node )
 
     boost::mpi::communicator world;
 
-    // Build a distributed mesh
-    DataTransferKit::DealIIMesh<dim,spacedim> dealii_mesh(world);
-    dealii::GridGenerator::hyper_rectangle(dealii_mesh,
+    // Build a mesh
+    Teuchos::RCP<DataTransferKit::DealIIMesh<dim,spacedim>> dealii_mesh =
+        Teuchos::rcp(new DataTransferKit::DealIIMesh<dim,spacedim>(world));
+    dealii::GridGenerator::hyper_rectangle(*dealii_mesh,
         dealii::Point<spacedim>(-1.0, -2.0, -3.0),
         dealii::Point<spacedim>( 0.0,  0.0,  0.0),
         true);
 
+    Teuchos::RCP<DataTransferKit::DealIIAdjacencies<dim,spacedim>> adjacencies =
+        Teuchos::rcp(new DataTransferKit::DealIIAdjacencies<dim,spacedim>(dealii_mesh));
+
     // Advance iterator to an element that is locally owned
-    auto tria_iterator = dealii_mesh.begin_active();
-    while (tria_iterator != dealii_mesh.end())
+    auto tria_iterator = dealii_mesh->begin_active();
+    while (tria_iterator != dealii_mesh->end())
     {
         if (tria_iterator->is_locally_owned())
             break;
@@ -112,9 +120,9 @@ BOOST_AUTO_TEST_CASE( test_DealIIEntity_node )
     }
 
     // These needs to be executed by all processes so I moved them up here
-    auto vertex_to_cell = dealii::GridTools::vertex_to_cell_map(dealii_mesh);
+    auto vertex_to_cell = dealii::GridTools::vertex_to_cell_map(*dealii_mesh);
     auto local_to_global_vertex_id =
-      dealii::GridTools::compute_local_to_global_vertex_index_map(dealii_mesh);
+      dealii::GridTools::compute_local_to_global_vertex_index_map(*dealii_mesh);
     Teuchos::RCP<std::vector<std::set<
       typename dealii::Triangulation<dim,spacedim>::active_cell_iterator>>>
       teuchos_vertex_to_cell = Teuchos::rcpFromRef(vertex_to_cell);
@@ -123,7 +131,7 @@ BOOST_AUTO_TEST_CASE( test_DealIIEntity_node )
 
     // Ensure the iterator does not point to the end before dereferencing
     bool iterator_points_to_the_end = false;
-    if ( tria_iterator != dealii_mesh.end() )
+    if ( tria_iterator != dealii_mesh->end() )
     {
         auto tria_accessor = *tria_iterator;
 
@@ -144,8 +152,8 @@ BOOST_AUTO_TEST_CASE( test_DealIIEntity_node )
         {
           auto vertex_iterator = tria_accessor.vertex_iterator(i);
           DataTransferKit::Entity dtk_entity =
-            DataTransferKit::DealIIEntity<structdim,dim,spacedim>(*vertex_iterator, teuchos_vertex_to_cell,
-                teuchos_local_to_global_vertex_id);
+            DataTransferKit::DealIIEntity<structdim,dim,spacedim>(*vertex_iterator,
+               adjacencies);
           // Print out the entity.
           Teuchos::RCP<Teuchos::FancyOStream> fancy_os =
               Teuchos::VerboseObjectBase::getDefaultOStream();

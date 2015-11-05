@@ -10,34 +10,10 @@ namespace internal
   template <int structdim,int dim,int spacedim> struct entity_id;
   template <int dim,int spacedim> struct entity_id<0,dim,spacedim>;
 
+
   template <int structdim,int dim,int spacedim>
   struct Entity
   {
-    static EntityId id(
-        Teuchos::RCP<DealIIEntityExtraData<structdim,dim,spacedim>> extra_data)
-    {
-      auto dealii_tria_accessor =
-        Teuchos::rcp_dynamic_cast<DealIIEntityExtraData<structdim,dim,spacedim>>
-            (extra_data)->dealii_tria_accessor;
-      EntityId entity_id = 0;
-
-      if (structdim == dim) 
-      {
-        dealii::CellAccessor<dim,spacedim> dealii_cell_accessor(dealii_tria_accessor);
-        std::string cell_id = dealii_cell_accessor.id().to_string();
-        const unsigned int cell_id_size = cell_id.size();
-        for (unsigned int i=0; i<cell_id.size(); ++i)
-          entity_id = (static_cast<int>(cell_id[i])<<
-              static_cast<int>(std::pow(8,cell_id_size-(i+1)))) | entity_id;
-      }
-      else
-        throw std::runtime_error("entity_id not implemented for faces");
-
-      return entity_id; 
-    }
-    
-
-
     static int ownerRank(Teuchos::RCP<DealIIEntityExtraData<structdim,dim,spacedim>> extra_data)
     {
       auto dealii_tria_accessor =
@@ -98,28 +74,18 @@ namespace internal
   template <int dim,int spacedim>
   struct Entity<0,dim,spacedim>
   {
-    static EntityId id(
-        Teuchos::RCP<DealIIEntityExtraData<0,dim,spacedim>> extra_data)
-    {
-      auto dealii_tria_accessor =
-        Teuchos::rcp_dynamic_cast<DealIIEntityExtraData<0,dim,spacedim>>
-            (extra_data)->dealii_tria_accessor;
-      EntityId entity_id =
-        (*(extra_data->dealii_local_to_global_vertex_id))[dealii_tria_accessor.vertex_index()];
-
-      return entity_id; 
-    }
-
-
-
     static int ownerRank(Teuchos::RCP<DealIIEntityExtraData<0,dim,spacedim>> extra_data)
     {
       auto dealii_tria_accessor =
         Teuchos::rcp_dynamic_cast<DealIIEntityExtraData<0,dim,spacedim>>
         (extra_data)->dealii_tria_accessor;
       unsigned int min_rank=-1;
-      std::set<typename dealii::Triangulation<dim,spacedim>::active_cell_iterator> adjacent_cells =
-        (*(extra_data->dealii_vertex_to_cell))[dealii_tria_accessor.vertex_index()];
+      auto adjacencies =
+        Teuchos::rcp_dynamic_cast<DealIIEntityExtraData<0,dim,spacedim>>
+        (extra_data)->adjacencies;
+      auto adjacent_cells =
+        adjacencies->getElemAdjacentToNode(adjacencies->getId(dealii_tria_accessor)).second;
+
       for (auto && adjacent_cell : adjacent_cells)
         if (min_rank > adjacent_cell->subdomain_id())
           min_rank = adjacent_cell->subdomain_id();
@@ -135,8 +101,12 @@ namespace internal
       auto dealii_tria_accessor =
         Teuchos::rcp_dynamic_cast<DealIIEntityExtraData<0,dim,spacedim>>
         (extra_data)->dealii_tria_accessor;
-      std::set<typename dealii::Triangulation<dim,spacedim>::active_cell_iterator> adjacent_cells =
-        (*(extra_data->dealii_vertex_to_cell))[dealii_tria_accessor.vertex_index()];
+      auto adjacencies =
+        Teuchos::rcp_dynamic_cast<DealIIEntityExtraData<0,dim,spacedim>>
+        (extra_data)->adjacencies;
+      auto adjacent_cells =
+        adjacencies->getElemAdjacentToNode(adjacencies->getId(dealii_tria_accessor)).second;
+
       for (auto && adjacent_cell : adjacent_cells)
       {
         if (adjacent_cell->material_id() == block_id)
@@ -153,8 +123,12 @@ namespace internal
       auto dealii_tria_accessor =
         Teuchos::rcp_dynamic_cast<DealIIEntityExtraData<0,dim,spacedim>>
         (extra_data)->dealii_tria_accessor;
-      std::set<typename dealii::Triangulation<dim,spacedim>::active_cell_iterator> adjacent_cells =
-        (*(extra_data->dealii_vertex_to_cell))[dealii_tria_accessor.vertex_index()];
+      auto adjacencies =
+        Teuchos::rcp_dynamic_cast<DealIIEntityExtraData<0,dim,spacedim>>
+        (extra_data)->adjacencies;
+      auto adjacent_cells =
+        adjacencies->getElemAdjacentToNode(adjacencies->getId(dealii_tria_accessor)).second;
+
       for (auto && adjacent_cell : adjacent_cells)
         for (unsigned int face = 0; face<dealii::GeometryInfo<dim>::faces_per_cell; ++face)
           for (unsigned int v = 0; v<dealii::GeometryInfo<dim>::vertices_per_face; ++v)
@@ -169,15 +143,12 @@ namespace internal
 
 
 
-
 template <int structdim,int dim,int spacedim>
 DealIIEntityImpl<structdim,dim,spacedim>::
 DealIIEntityImpl(dealii::TriaAccessor<structdim,dim,spacedim> const & tria_accessor,
-    Teuchos::RCP<std::vector<std::set<
-    typename dealii::Triangulation<dim,spacedim>::active_cell_iterator>>> vertex_to_cell,
-    Teuchos::RCP<std::map<unsigned int, unsigned long long int>> local_to_global_vertex_id)
+    Teuchos::RCP<DealIIAdjacencies<dim,spacedim> const> adjacencies)
 : extra_data(Teuchos::rcp(new DealIIEntityExtraData<structdim,dim,spacedim>(tria_accessor,
-        vertex_to_cell, local_to_global_vertex_id)))
+        adjacencies)))
 {}
 
 
@@ -187,7 +158,14 @@ EntityId
 DealIIEntityImpl<structdim,dim,spacedim>::
 id() const
 {
-  return internal::Entity<structdim,dim,spacedim>::id(extra_data);
+    auto dealii_tria_accessor =
+      Teuchos::rcp_dynamic_cast<DealIIEntityExtraData<structdim,dim,spacedim>>
+          (extra_data)->dealii_tria_accessor;
+    EntityId entity_id =
+      Teuchos::rcp_dynamic_cast<DealIIEntityExtraData<structdim,dim,spacedim>>
+          (extra_data)->adjacencies->getId(dealii_tria_accessor);
+
+    return entity_id;
 }
 
 

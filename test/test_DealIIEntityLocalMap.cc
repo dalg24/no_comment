@@ -14,20 +14,25 @@ BOOST_AUTO_TEST_CASE( test_DealIIEntityLocalMap )
     int const dim = 3;
     int const spacedim = 3;
 
-    // Build a mesh
     boost::mpi::communicator world;
-    DataTransferKit::DealIIMesh<dim,spacedim> dealii_tria(world);
-    dealii::GridGenerator::hyper_rectangle(dealii_tria,
+
+    // Build a mesh
+    Teuchos::RCP<DataTransferKit::DealIIMesh<dim,spacedim>> dealii_mesh =
+        Teuchos::rcp(new DataTransferKit::DealIIMesh<dim,spacedim>(world));
+    dealii::GridGenerator::hyper_rectangle(*dealii_mesh,
         dealii::Point<spacedim>(-1.0, -2.0, -3.0),
         dealii::Point<spacedim>( 0.0,  0.0,  0.0),
         true);
 
+    Teuchos::RCP<DataTransferKit::DealIIAdjacencies<dim,spacedim>> adjacencies =
+        Teuchos::rcp(new DataTransferKit::DealIIAdjacencies<dim,spacedim>(dealii_mesh));
+
     auto dealii_tria_iterator =
-            *dealii_tria.begin_active();
+            dealii_mesh->begin_active();
 
     // Create a dtk entity for the single volume element in the mesh
     DataTransferKit::Entity dtk_entity =
-        DataTransferKit::DealIIEntity<structdim,dim,spacedim>(dealii_tria_iterator);
+        DataTransferKit::DealIIEntity<structdim,dim,spacedim>(*dealii_tria_iterator, adjacencies);
 
     // Create a local map
     auto dealii_mapping =
@@ -62,7 +67,7 @@ BOOST_AUTO_TEST_CASE( test_DealIIEntityLocalMap )
     Teuchos::Array<double> ref_good_point(spacedim);
     dtk_entity_local_map->mapToReferenceFrame(dtk_entity, good_point(), ref_good_point());
     for (unsigned int vertex = 0; vertex < dealii::GeometryInfo<dim>::vertices_per_cell; ++vertex)
-        std::cout<<"vertex "<<vertex<<": "<<dealii_tria_iterator.vertex(vertex)<<"\n";
+        std::cout<<"vertex "<<vertex<<": "<<dealii_tria_iterator->vertex(vertex)<<"\n";
     // NOTE: I did ``1 - eta'' because of the cell orientation
     BOOST_CHECK_CLOSE( ref_good_point[0], 1.0 - 0.15, percent_tolerance );
     BOOST_CHECK_CLOSE( ref_good_point[1], 1.0 - 0.05, percent_tolerance );

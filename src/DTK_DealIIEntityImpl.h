@@ -15,9 +15,7 @@ class DealIIEntityImpl : public EntityImpl
 public:
 
    DealIIEntityImpl(DealIIGeom<structdim,dim,spacedim> const & tria_accessor,
-       Teuchos::RCP<std::vector<std::set<
-       typename dealii::Triangulation<dim,spacedim>::active_cell_iterator>>> vertex_to_cell,
-       Teuchos::RCP<std::map<unsigned int, unsigned long long int>> local_to_global_vertex_id);
+                    Teuchos::RCP<DealIIAdjacencies<dim,spacedim> const> adjacencies);
 
     /*!
      * \brief Get the unique global identifier for the entity.

@@ -39,10 +39,10 @@ getEntity(const EntityId entity_id,
 {
     if (topological_dimension == dim)
         entity = DealIIEntity<dim,dim,spacedim>(
-            (adjacencies->getElemById(entity_id)) );
+            adjacencies->getElemById(entity_id), adjacencies);
     else if (topological_dimension == 0)
         entity = DealIIEntity<  0,dim,spacedim>(
-            (adjacencies->getNodeById(entity_id)) );
+            adjacencies->getNodeById(entity_id), adjacencies);
     else
         throw std::runtime_error("not implemented");
 }
@@ -73,7 +73,7 @@ getAdjacentEntities(
         adjacent_entities.resize(std::distance(ret.second.begin(), ret.second.end()));
         auto dtk_entity = adjacent_entities.begin();
         for (auto it = ret.second.begin(); it != ret.second.end(); ++it, ++dtk_entity)
-            *dtk_entity = DealIIEntity<dim,dim,spacedim>(*it);
+            *dtk_entity = DealIIEntity<dim,dim,spacedim>(**it, adjacencies);
         AssertThrow(
             dtk_entity == adjacent_entities.end(),
             dealii::ExcMessage("not good") );
