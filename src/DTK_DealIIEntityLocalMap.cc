@@ -36,6 +36,7 @@ namespace internal
     {
       // Not sure what this is supposed to return for a point. So always return
       // false.
+      std::ignore = reference_point;
       return false;
     }
   };
