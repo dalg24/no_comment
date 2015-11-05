@@ -17,21 +17,11 @@ DealIIAdjacencies(Teuchos::RCP<DealIIMesh<dim,spacedim> const> tria)
     tria(tria),
     vertex_to_cell(dealii::GridTools::vertex_to_cell_map(*tria))
 {
-    // checking that dtk has not change its typedef
-    static_assert(
-        std::is_same<DataTransferKit::EntityId,unsigned long long int>::value,
-        "dtk entity type is not unsigned long int anymore...");
-    // checking that assumptions on integral type sizes are true
-    static_assert(
-        std::numeric_limits<unsigned long long int>::digits ==
-        2 * std::numeric_limits<unsigned int>::digits,
-        "awwww man...");
-
     std::map<unsigned int, unsigned long long int> local_to_global_vertex_id =
         dealii::GridTools::compute_local_to_global_vertex_index_map(*tria);
     // Reverse the map
-    for (auto map_it=local_to_global_vertex_id.begin(); 
-        map_it!=local_to_global_vertex_id.end(); ++map_it)
+    for (auto map_it=local_to_global_vertex_id.cbegin(); 
+        map_it!=local_to_global_vertex_id.cend(); ++map_it)
       global_to_local_vertex_id[map_it->second] = map_it->first;
 
 
@@ -39,7 +29,7 @@ DealIIAdjacencies(Teuchos::RCP<DealIIMesh<dim,spacedim> const> tria)
     auto const cell_end   = tria->end();
     for (auto cell = cell_begin; cell != cell_end; ++cell)
     {
-        dealii::TriaAccessor<dim,dim,spacedim> elem_accessor(tria.get(), cell->level(), cell->index());
+        DealIIElem<dim,spacedim> elem_accessor(tria.get(), cell->level(), cell->index());
         DealIIEntity<dim,dim,spacedim> elem_entity(elem_accessor);
         elem_id_to_lvl_index[elem_entity.id()] = std::pair<unsigned int, unsigned int>(
             cell->level(), cell->index());
@@ -48,7 +38,7 @@ DealIIAdjacencies(Teuchos::RCP<DealIIMesh<dim,spacedim> const> tria)
 
 
 template <int dim,int spacedim>
-dealii::TriaAccessor<0,dim,spacedim>
+DealIINode<dim,spacedim>
 DealIIAdjacencies<dim,spacedim>::
 getNodeById(EntityId const id) const
 {
@@ -57,12 +47,12 @@ getNodeById(EntityId const id) const
         ret != global_to_local_vertex_id.end(),
         dealii::ExcMessage("Unknown id") );
 
-    return dealii::TriaAccessor<0,dim,spacedim>(tria.get(),ret->second);
+    return DealIINode<dim,spacedim>(tria.get(),ret->second);
 }
 
 
 template <int dim,int spacedim>
-dealii::TriaAccessor<dim,dim,spacedim>
+DealIIElem<dim,spacedim>
 DealIIAdjacencies<dim,spacedim>::
 getElemById(EntityId const id) const
 {
@@ -71,14 +61,14 @@ getElemById(EntityId const id) const
         ret != elem_id_to_lvl_index.end(),
         dealii::ExcMessage("Unknown id") );
 
-    return dealii::TriaAccessor<dim,dim,spacedim>(tria.get(),ret->second.first,
+    return DealIIElem<dim,spacedim>(tria.get(),ret->second.first,
         ret->second.second);
 }
 
 
 template <int dim,int spacedim>
-std::pair<dealii::TriaAccessor<0,dim,spacedim>,
-  std::vector<dealii::TriaAccessor<dim,dim,spacedim>>>
+std::pair<DealIINode<dim,spacedim>,
+  std::vector<DealIIElem<dim,spacedim>>>
 DealIIAdjacencies<dim,spacedim>::
 getElemAdjacentToNode(EntityId const id) const
 {
@@ -87,16 +77,16 @@ getElemAdjacentToNode(EntityId const id) const
         ret != global_to_local_vertex_id.end(),
         dealii::ExcMessage("Unknown id") );
   
-    dealii::TriaAccessor<0,dim,spacedim> node(tria.get(),ret->second);
-    std::vector<dealii::TriaAccessor<dim,dim,spacedim>> adjacent_elem;
+    DealIINode<dim,spacedim> node(tria.get(),ret->second);
+    std::vector<DealIIElem<dim,spacedim>> adjacent_elem;
 
     for (auto cell : vertex_to_cell[ret->second])
-      adjacent_elem.push_back(dealii::TriaAccessor<dim,dim,spacedim>(tria.get(),
+      adjacent_elem.emplace_back(DealIIElem<dim,spacedim>(tria.get(),
             cell->level(),cell->index()));
 
 
-    return std::pair<dealii::TriaAccessor<0,dim,spacedim>,
-      std::vector<dealii::TriaAccessor<dim,dim,spacedim>>> (node,adjacent_elem);
+    return std::pair<DealIINode<dim,spacedim>,
+      std::vector<DealIIElem<dim,spacedim>>>(node,adjacent_elem);
 }
 
 template class DealIIAdjacencies<2,2>;
