@@ -44,6 +44,18 @@ namespace internal
 
 
 
+// helper function
+template <int dim,int spacedim>
+dealii::TriaIterator<dealii::CellAccessor<dim,spacedim>>
+getCellIterator(Entity const & entity)
+{
+    Teuchos::RCP<DealIIEntityExtraData<dim,dim,spacedim>> extra_data =
+        Teuchos::rcp_dynamic_cast<DealIIEntityExtraData<dim,dim,spacedim>>(entity.extraData());
+    return dealii::TriaIterator<dealii::CellAccessor<dim,spacedim>>(extra_data->dealii_tria_accessor);
+}
+
+
+
 template <int structdim,int dim,int spacedim>
 DealIIEntityLocalMap<structdim,dim,spacedim>::
 DealIIEntityLocalMap(std::shared_ptr<dealii::Mapping<dim,spacedim> const> mapping)
@@ -69,10 +81,8 @@ double
 DealIIEntityLocalMap<structdim,dim,spacedim>::
 measure( const DataTransferKit::Entity& entity ) const
 {
-    Teuchos::RCP<DealIIEntityExtraData<structdim,dim,spacedim>> extra_data
-        = Teuchos::rcp_dynamic_cast<DealIIEntityExtraData<structdim,dim,spacedim>>(entity.extraData());
-    auto dealii_tria_accessor = extra_data->dealii_tria_accessor;
-    return dealii_tria_accessor.measure();
+    auto dealii_cell_iterator = getCellIterator<dim,spacedim>(entity);
+    return dealii_cell_iterator->measure();
 }
 
 
@@ -84,11 +94,9 @@ centroid(
     const DataTransferKit::Entity& entity,
     const Teuchos::ArrayView<double>& centroid ) const
 {
-    Teuchos::RCP<DealIIEntityExtraData<structdim,dim,spacedim>> extra_data
-        = Teuchos::rcp_dynamic_cast<DealIIEntityExtraData<structdim,dim,spacedim>>(entity.extraData());
-    auto dealii_tria_accessor = extra_data->dealii_tria_accessor;
+    auto dealii_cell_iterator = getCellIterator<dim,spacedim>(entity);
     dealii::Point<spacedim> center_point =
-        dealii_tria_accessor.center(true);
+        dealii_cell_iterator->center(true);
     for (int d = 0; d < spacedim; ++d)
         centroid[d] = center_point[d];
 }
@@ -123,17 +131,14 @@ mapToReferenceFrame(
     const Teuchos::ArrayView<const double>& physical_point,
     const Teuchos::ArrayView<double>& reference_point ) const
 {
-    Teuchos::RCP<DealIIEntityExtraData<structdim,dim,spacedim>> extra_data
-        = Teuchos::rcp_dynamic_cast<DealIIEntityExtraData<structdim,dim,spacedim>>(entity.extraData());
-    auto dealii_cell_accessor = extra_data->dealii_tria_accessor;
-    dealii::TriaIterator<dealii::CellAccessor<dim,spacedim>> dealii_tria_accessor(dealii_cell_accessor);
+    auto dealii_cell_iterator = getCellIterator<dim,spacedim>(entity);
     dealii::Point<spacedim> pointInPhysicalFrame;
     for (int d = 0; d < spacedim; ++d)
         pointInPhysicalFrame[d] = physical_point[d];
 
     try {
         dealii::Point<dim> pointInReferenceFrame =
-            dealii_mapping->transform_real_to_unit_cell(dealii_tria_accessor, pointInPhysicalFrame);
+            dealii_mapping->transform_real_to_unit_cell(dealii_cell_iterator, pointInPhysicalFrame);
     
         for (int d = 0; d < dim; ++d)
             reference_point[d] = pointInReferenceFrame[d];
@@ -173,16 +178,13 @@ mapToPhysicalFrame(
     const Teuchos::ArrayView<const double>& reference_point,
     const Teuchos::ArrayView<double>& physical_point ) const
 {
-    Teuchos::RCP<DealIIEntityExtraData<structdim,dim,spacedim>> extra_data
-        = Teuchos::rcp_dynamic_cast<DealIIEntityExtraData<structdim,dim,spacedim>>(entity.extraData());
-    auto dealii_cell_accessor = extra_data->dealii_tria_accessor;
-    dealii::TriaIterator<dealii::CellAccessor<dim,spacedim>> dealii_tria_accessor(dealii_cell_accessor);
+    auto dealii_cell_iterator = getCellIterator<dim,spacedim>(entity);
     dealii::Point<dim> pointInReferenceFrame;
     for (int d = 0; d < dim; ++d)
         pointInReferenceFrame[d] = reference_point[d];
 
     dealii::Point<spacedim> pointInPhysicalFrame =
-        dealii_mapping->transform_unit_to_real_cell(dealii_tria_accessor, pointInReferenceFrame);
+        dealii_mapping->transform_unit_to_real_cell(dealii_cell_iterator, pointInReferenceFrame);
 
     for (int d = 0; d < spacedim; ++d)
         physical_point[d] = pointInPhysicalFrame[d];
@@ -205,6 +207,8 @@ normalAtReferencePoint(
     std::ignore = normal;
     throw  std::runtime_error("DealIIEntityLocalMap::normalAtReferencePoint(...) not implemented");
 }
+
+
 
 template class DealIIEntityLocalMap<0,2,2>;
 template class DealIIEntityLocalMap<0,2,3>;
