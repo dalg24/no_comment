@@ -15,11 +15,11 @@ namespace DataTransferKit
 {
 
 template <int dim,int spacedim>
-class DealIINodalShapeFunction : public EntityShapeFunction
+class DealIIEntityShapeFunction : public EntityShapeFunction
 {
 public:
 
-    DealIINodalShapeFunction( 
+    DealIIEntityShapeFunction( 
       	const Teuchos::RCP<dealii::DoFHandler<dim,spacedim>>& dealii_dof_handler );
 
     /*!

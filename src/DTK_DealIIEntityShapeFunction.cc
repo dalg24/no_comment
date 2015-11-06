@@ -1,4 +1,4 @@
-#include <no_comment/DTK_DealIINodalShapeFunction.h>
+#include <no_comment/DTK_DealIIEntityShapeFunction.h>
 #include <no_comment/DTK_DealIIHelpers.h>
 #include <deal.II/fe/fe_values.h>
 #include <deal.II/dofs/dof_accessor.h>
@@ -9,8 +9,8 @@ namespace DataTransferKit
 {
 
 template <int dim,int spacedim>
-DealIINodalShapeFunction<dim,spacedim>::
-DealIINodalShapeFunction(
+DealIIEntityShapeFunction<dim,spacedim>::
+DealIIEntityShapeFunction(
     const Teuchos::RCP<dealii::DoFHandler<dim,spacedim>>& dealii_dof_handler )
     : d_dealii_dof_handler( dealii_dof_handler )
 {
@@ -27,7 +27,7 @@ DealIINodalShapeFunction(
 
 template <int dim,int spacedim>
 void
-DealIINodalShapeFunction<dim,spacedim>::
+DealIIEntityShapeFunction<dim,spacedim>::
 entitySupportIds( 
     const Entity& entity,
     Teuchos::Array<SupportId>& support_ids ) const
@@ -36,7 +36,8 @@ entitySupportIds(
     dof_accessor.copy_from(
         *DealIIHelpers::getCellIterator<dim,spacedim>(entity) );
 
-    std::vector<dealii::types::global_dof_index> dof_indices;
+    int const dofs_per_cell = d_dealii_dof_handler->get_fe().dofs_per_cell;
+    std::vector<dealii::types::global_dof_index> dof_indices(dofs_per_cell);
     dof_accessor.get_dof_indices(dof_indices);
 
     support_ids.assign(dof_indices.begin(), dof_indices.end());
@@ -46,7 +47,7 @@ entitySupportIds(
 
 template <int dim,int spacedim>
 void
-DealIINodalShapeFunction<dim,spacedim>::
+DealIIEntityShapeFunction<dim,spacedim>::
 evaluateValue( 
     const Entity& entity,
     const Teuchos::ArrayView<const double>& reference_point,
@@ -70,7 +71,7 @@ evaluateValue(
 
 template <int dim,int spacedim>
 void
-DealIINodalShapeFunction<dim,spacedim>::
+DealIIEntityShapeFunction<dim,spacedim>::
 evaluateGradient( 
     const Entity& entity,
     const Teuchos::ArrayView<const double>& reference_point,
@@ -91,7 +92,7 @@ evaluateGradient(
             fe_values.shape_grad(dof, 0) );
 }
 
-template class DealIINodalShapeFunction<2,2>;
-template class DealIINodalShapeFunction<3,3>;
+template class DealIIEntityShapeFunction<2,2>;
+template class DealIIEntityShapeFunction<3,3>;
 
 } // end namespace DataTransferKit

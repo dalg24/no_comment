@@ -62,7 +62,7 @@ ADD_LIBRARY(no_comment
     src/DTK_DealIIEntityLocalMap.cc
     src/DTK_DealIIAdjacencies.cc
     src/DTK_DealIIEntitySet.cc
-    src/DTK_DealIINodalShapeFunction.cc
+    src/DTK_DealIIEntityShapeFunction.cc
     )
 #SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 ENABLE_TESTING()
