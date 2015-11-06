@@ -3,6 +3,16 @@
 
 namespace DataTransferKit {
 
+// helper function
+template <int dim,int spacedim>
+std::vector<dealii::TriaActiveIterator<dealii::CellAccessor<dim,spacedim>>>
+getAdjacentCellIterator(Teuchos::RCP<DealIIEntityExtraData<0,dim,spacedim>> extra_data)
+{
+    auto id = extra_data->adjacencies->getId(extra_data->dealii_tria_accessor);
+    return extra_data->adjacencies->getElemAdjacentToNode(id).second;
+
+}
+
 // Partial specialization of a function is forbidden, so we delegue the work to
 // some classes that can be specialized
 namespace internal
@@ -16,17 +26,13 @@ namespace internal
   {
     static int ownerRank(Teuchos::RCP<DealIIEntityExtraData<structdim,dim,spacedim>> extra_data)
     {
-      auto dealii_tria_accessor =
-        Teuchos::rcp_dynamic_cast<DealIIEntityExtraData<structdim,dim,spacedim>>
-        (extra_data)->dealii_tria_accessor;
-
       if (structdim == dim)
       {
-        dealii::CellAccessor<dim,spacedim> dealii_cell_accessor(dealii_tria_accessor);
+        dealii::CellAccessor<dim,spacedim> dealii_cell_accessor(extra_data->dealii_tria_accessor);
         return dealii_cell_accessor.subdomain_id();
       }
       else
-        throw std::runtime_error("entity_id not implemented for faces");
+        throw std::runtime_error("ownerRank not implemented for faces");
     }
 
 
@@ -34,13 +40,9 @@ namespace internal
     static bool inBlock(const int block_id,
         Teuchos::RCP<DealIIEntityExtraData<structdim,dim,spacedim>> extra_data)
     {
-      auto dealii_tria_accessor =
-        Teuchos::rcp_dynamic_cast<DealIIEntityExtraData<structdim,dim,spacedim>>
-        (extra_data)->dealii_tria_accessor;
-
       if (structdim == dim)
       {
-        dealii::CellAccessor<dim,spacedim> dealii_cell_accessor(dealii_tria_accessor);
+        dealii::CellAccessor<dim,spacedim> dealii_cell_accessor(extra_data->dealii_tria_accessor);
         return (dealii_cell_accessor.material_id() == block_id);
       }
       else
@@ -52,12 +54,9 @@ namespace internal
     static bool onBoundary(const int boundary_id,
         Teuchos::RCP<DealIIEntityExtraData<structdim,dim,spacedim>> extra_data)
     {
-      auto dealii_tria_accessor =
-        Teuchos::rcp_dynamic_cast<DealIIEntityExtraData<structdim,dim,spacedim>>
-        (extra_data)->dealii_tria_accessor;
       if (structdim == dim)
       {
-        dealii::CellAccessor<dim,spacedim> dealii_cell_accessor(dealii_tria_accessor);
+        dealii::CellAccessor<dim,spacedim> dealii_cell_accessor(extra_data->dealii_tria_accessor);
         // it is on the boundary boundary_id if any of its face is on it
         for (unsigned int face = 0; face < dealii::GeometryInfo<dim>::faces_per_cell; ++face)
         {
@@ -71,20 +70,15 @@ namespace internal
     }
   };
 
+
+
   template <int dim,int spacedim>
   struct Entity<0,dim,spacedim>
   {
     static int ownerRank(Teuchos::RCP<DealIIEntityExtraData<0,dim,spacedim>> extra_data)
     {
-      auto dealii_tria_accessor =
-        Teuchos::rcp_dynamic_cast<DealIIEntityExtraData<0,dim,spacedim>>
-        (extra_data)->dealii_tria_accessor;
       unsigned int min_rank=-1;
-      auto adjacencies =
-        Teuchos::rcp_dynamic_cast<DealIIEntityExtraData<0,dim,spacedim>>
-        (extra_data)->adjacencies;
-      auto adjacent_cells =
-        adjacencies->getElemAdjacentToNode(adjacencies->getId(dealii_tria_accessor)).second;
+      auto adjacent_cells = getAdjacentCellIterator(extra_data);
 
       for (auto && adjacent_cell : adjacent_cells)
         if (min_rank > adjacent_cell->subdomain_id())
@@ -98,14 +92,7 @@ namespace internal
     static bool inBlock(const int block_id,
         Teuchos::RCP<DealIIEntityExtraData<0,dim,spacedim>> extra_data)
     {
-      auto dealii_tria_accessor =
-        Teuchos::rcp_dynamic_cast<DealIIEntityExtraData<0,dim,spacedim>>
-        (extra_data)->dealii_tria_accessor;
-      auto adjacencies =
-        Teuchos::rcp_dynamic_cast<DealIIEntityExtraData<0,dim,spacedim>>
-        (extra_data)->adjacencies;
-      auto adjacent_cells =
-        adjacencies->getElemAdjacentToNode(adjacencies->getId(dealii_tria_accessor)).second;
+      auto adjacent_cells = getAdjacentCellIterator(extra_data);
 
       for (auto && adjacent_cell : adjacent_cells)
       {
@@ -120,19 +107,12 @@ namespace internal
     static bool onBoundary(const int boundary_id,
         Teuchos::RCP<DealIIEntityExtraData<0,dim,spacedim>> extra_data)
     {
-      auto dealii_tria_accessor =
-        Teuchos::rcp_dynamic_cast<DealIIEntityExtraData<0,dim,spacedim>>
-        (extra_data)->dealii_tria_accessor;
-      auto adjacencies =
-        Teuchos::rcp_dynamic_cast<DealIIEntityExtraData<0,dim,spacedim>>
-        (extra_data)->adjacencies;
-      auto adjacent_cells =
-        adjacencies->getElemAdjacentToNode(adjacencies->getId(dealii_tria_accessor)).second;
+      auto adjacent_cells = getAdjacentCellIterator(extra_data);
 
       for (auto && adjacent_cell : adjacent_cells)
         for (unsigned int face = 0; face<dealii::GeometryInfo<dim>::faces_per_cell; ++face)
           for (unsigned int v = 0; v<dealii::GeometryInfo<dim>::vertices_per_face; ++v)
-            if (adjacent_cell->face(face)->vertex_index(v)==dealii_tria_accessor.vertex_index())
+            if (adjacent_cell->face(face)->vertex_index(v)==extra_data->dealii_tria_accessor.vertex_index())
               if (adjacent_cell->face(face)->boundary_id() == boundary_id)
                 return true;
       
@@ -158,14 +138,7 @@ EntityId
 DealIIEntityImpl<structdim,dim,spacedim>::
 id() const
 {
-    auto dealii_tria_accessor =
-      Teuchos::rcp_dynamic_cast<DealIIEntityExtraData<structdim,dim,spacedim>>
-          (extra_data)->dealii_tria_accessor;
-    EntityId entity_id =
-      Teuchos::rcp_dynamic_cast<DealIIEntityExtraData<structdim,dim,spacedim>>
-          (extra_data)->adjacencies->getId(dealii_tria_accessor);
-
-    return entity_id;
+    return extra_data->adjacencies->getId(extra_data->dealii_tria_accessor);
 }
 
 
@@ -205,9 +178,7 @@ void
 DealIIEntityImpl<structdim,dim,spacedim>::
 boundingBox( Teuchos::Tuple<double,6>& bounds ) const
 {
-    auto dealii_tria_accessor =
-        Teuchos::rcp_dynamic_cast<DealIIEntityExtraData<structdim,dim,spacedim>>
-            (extra_data)->dealii_tria_accessor;
+    auto dealii_tria_accessor = extra_data->dealii_tria_accessor;
     dealii::Point<spacedim> center = dealii_tria_accessor.center(true);
   
     for (unsigned int i=0; i<spacedim; ++i)
