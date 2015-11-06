@@ -1,5 +1,6 @@
-#include <no_comment/DTK_DealIIEntityExtraData.h>
 #include <no_comment/DTK_DealIIEntityLocalMap.h>
+#include <no_comment/DTK_DealIIEntityExtraData.h>
+#include <no_comment/DTK_DealIIHelpers.h>
 
 namespace DataTransferKit {
 
@@ -44,18 +45,6 @@ namespace internal
 
 
 
-// helper function
-template <int dim,int spacedim>
-dealii::TriaIterator<dealii::CellAccessor<dim,spacedim>>
-getCellIterator(Entity const & entity)
-{
-    Teuchos::RCP<DealIIEntityExtraData<dim,dim,spacedim>> extra_data =
-        Teuchos::rcp_dynamic_cast<DealIIEntityExtraData<dim,dim,spacedim>>(entity.extraData());
-    return dealii::TriaIterator<dealii::CellAccessor<dim,spacedim>>(extra_data->dealii_tria_accessor);
-}
-
-
-
 template <int structdim,int dim,int spacedim>
 DealIIEntityLocalMap<structdim,dim,spacedim>::
 DealIIEntityLocalMap(std::shared_ptr<dealii::Mapping<dim,spacedim> const> mapping)
@@ -81,7 +70,7 @@ double
 DealIIEntityLocalMap<structdim,dim,spacedim>::
 measure( const DataTransferKit::Entity& entity ) const
 {
-    auto dealii_cell_iterator = getCellIterator<dim,spacedim>(entity);
+    auto dealii_cell_iterator = DealIIHelpers::getCellIterator<dim,spacedim>(entity);
     return dealii_cell_iterator->measure();
 }
 
@@ -94,7 +83,7 @@ centroid(
     const DataTransferKit::Entity& entity,
     const Teuchos::ArrayView<double>& centroid ) const
 {
-    auto dealii_cell_iterator = getCellIterator<dim,spacedim>(entity);
+    auto dealii_cell_iterator = DealIIHelpers::getCellIterator<dim,spacedim>(entity);
     dealii::Point<spacedim> center_point =
         dealii_cell_iterator->center(true);
     for (int d = 0; d < spacedim; ++d)
@@ -131,7 +120,7 @@ mapToReferenceFrame(
     const Teuchos::ArrayView<const double>& physical_point,
     const Teuchos::ArrayView<double>& reference_point ) const
 {
-    auto dealii_cell_iterator = getCellIterator<dim,spacedim>(entity);
+    auto dealii_cell_iterator = DealIIHelpers::getCellIterator<dim,spacedim>(entity);
     dealii::Point<spacedim> pointInPhysicalFrame;
     for (int d = 0; d < spacedim; ++d)
         pointInPhysicalFrame[d] = physical_point[d];
@@ -178,7 +167,7 @@ mapToPhysicalFrame(
     const Teuchos::ArrayView<const double>& reference_point,
     const Teuchos::ArrayView<double>& physical_point ) const
 {
-    auto dealii_cell_iterator = getCellIterator<dim,spacedim>(entity);
+    auto dealii_cell_iterator = DealIIHelpers::getCellIterator<dim,spacedim>(entity);
     dealii::Point<dim> pointInReferenceFrame;
     for (int d = 0; d < dim; ++d)
         pointInReferenceFrame[d] = reference_point[d];
