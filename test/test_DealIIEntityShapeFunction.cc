@@ -73,15 +73,17 @@ BOOST_AUTO_TEST_CASE( test_DealIIEntityShapeFunction )
             dtk_entity_support_ids.begin(), dtk_entity_support_ids.end(),
             dealii_dof_indices.cbegin(), dealii_dof_indices.cend() );
 
+        double const tolerance = 1.0e-16;
+
         // Support nodes coordinates in the frame of reference and dof index
         std::vector<std::pair<std::vector<double>,int>> const support_nodes_xyz_dof =
             { { { 0.0, 0.0, 0.0 }, 0 },
-              { { 0.0, 0.0, 1.0 }, 4 },
-              { { 0.0, 1.0, 0.0 }, 2 },
-              { { 0.0, 1.0, 1.0 }, 6 },
               { { 1.0, 0.0, 0.0 }, 1 },
-              { { 1.0, 0.0, 1.0 }, 5 },
+              { { 0.0, 1.0, 0.0 }, 2 },
               { { 1.0, 1.0, 0.0 }, 3 },
+              { { 0.0, 0.0, 1.0 }, 4 },
+              { { 1.0, 0.0, 1.0 }, 5 },
+              { { 0.0, 1.0, 1.0 }, 6 },
               { { 1.0, 1.0, 1.0 }, 7 },
             };
         for (auto const & node : support_nodes_xyz_dof)
@@ -92,11 +94,47 @@ BOOST_AUTO_TEST_CASE( test_DealIIEntityShapeFunction )
             int const dofs_per_cell = values.size();
             for (int dof = 0; dof < dofs_per_cell; ++dof)
                 if (dof == node.second)
-                    BOOST_CHECK_CLOSE( values[dof], 1.0, 1.0e-16 );
+                    BOOST_CHECK_CLOSE( values[dof], 1.0, tolerance );
                 else
-                    BOOST_CHECK_CLOSE( values[dof], 0.0, 1.0e-16 );
+                    BOOST_CHECK_CLOSE( values[dof], 0.0, tolerance );
+
+            // I am too lazy to check all of them
+            // gradients at the center of the cell will do
+            Teuchos::Array<Teuchos::Array<double>> gradients;
+            dtk_entity_shape_function->evaluateGradient(
+                dtk_entity, node.first, gradients );
         }
 
+        // Center of the element in the reference frame
+        std::vector<double> center = { 0.5, 0.5, 0.5 };
+        Teuchos::Array<double> values;
+        dtk_entity_shape_function->evaluateValue(
+            dtk_entity, center, values );
+        for (auto v : values)
+            BOOST_CHECK_CLOSE( v, 0.125, tolerance );
+
+        Teuchos::Array<Teuchos::Array<double>> gradients;
+        dtk_entity_shape_function->evaluateGradient(
+            dtk_entity, center, gradients );
+        // Here we are...
+        std::vector<std::vector<double>> gradients_at_center =
+             { {-0.25, -0.25, -0.25},
+               { 0.25, -0.25, -0.25},
+               {-0.25,  0.25, -0.25},
+               { 0.25,  0.25, -0.25},
+               {-0.25, -0.25,  0.25},
+               { 0.25, -0.25,  0.25},
+               {-0.25,  0.25,  0.25},
+               { 0.25,  0.25,  0.25},
+             };
+        // Scale it and check
+        // NB: has to match dimensions in the grid generator
+        std::vector<double> scaling_factor = { 1.0, 2.0, 3.0 };
+        for (int d = 0; d < 3; ++d)
+            for (int i = 0; i < 8; ++i)
+               BOOST_CHECK_CLOSE(
+                  gradients_at_center[i][d] / scaling_factor[d],
+                  gradients[i][d], tolerance );
     } else {
         iterator_points_to_the_end = true;
     }
