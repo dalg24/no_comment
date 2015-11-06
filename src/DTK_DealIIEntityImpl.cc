@@ -146,7 +146,7 @@ namespace internal
 template <int structdim,int dim,int spacedim>
 DealIIEntityImpl<structdim,dim,spacedim>::
 DealIIEntityImpl(dealii::TriaAccessor<structdim,dim,spacedim> const & tria_accessor,
-    Teuchos::RCP<DealIIAdjacencies<dim,spacedim> const> adjacencies)
+    Teuchos::Ptr<DealIIAdjacencies<dim,spacedim> const> adjacencies)
 : extra_data(Teuchos::rcp(new DealIIEntityExtraData<structdim,dim,spacedim>(tria_accessor,
         adjacencies)))
 {}

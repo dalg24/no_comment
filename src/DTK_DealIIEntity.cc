@@ -10,7 +10,7 @@ DealIIEntity(DealIIGeom<structdim,dim,spacedim> const & dealii_tria_accessor,
 {
     this->b_entity_impl = Teuchos::rcp(
         new DealIIEntityImpl<structdim,dim,spacedim>(
-            dealii_tria_accessor, adjacencies) );
+            dealii_tria_accessor, adjacencies.ptr()) );
 }
 
 template class DealIIEntity<0,2,2>;

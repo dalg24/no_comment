@@ -15,7 +15,7 @@ class DealIIEntityImpl : public EntityImpl
 public:
 
    DealIIEntityImpl(DealIIGeom<structdim,dim,spacedim> const & tria_accessor,
-                    Teuchos::RCP<DealIIAdjacencies<dim,spacedim> const> adjacencies);
+                    Teuchos::Ptr<DealIIAdjacencies<dim,spacedim> const> adjacencies);
 
     /*!
      * \brief Get the unique global identifier for the entity.
