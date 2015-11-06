@@ -28,6 +28,7 @@ BOOST_AUTO_TEST_CASE( test_DealIIAdjacencies )
   Teuchos::RCP<DataTransferKit::DealIIAdjacencies<dim,spacedim>> dealii_adjacencies =
       Teuchos::rcp(new DataTransferKit::DealIIAdjacencies<dim,spacedim>(tria));
 
+  // Check getNodeById
   double const tolerance = 1.0e-15;
   dealii::TriaAccessor<0,dim,spacedim> node = dealii_adjacencies->getNodeById(0);
   BOOST_CHECK_SMALL(node.vertex()[0]+1.,tolerance);
@@ -38,6 +39,7 @@ BOOST_AUTO_TEST_CASE( test_DealIIAdjacencies )
   BOOST_CHECK_SMALL(node.vertex()[1]+0.75,tolerance);
   BOOST_CHECK_SMALL(node.vertex()[2]+0.375,tolerance);
 
+  // Check getElemByID
   unsigned int level = 3;
   unsigned int index = 2;
   dealii::TriaAccessor<dim,dim,spacedim> elem_accessor(tria.get(), level, index);
@@ -49,6 +51,7 @@ BOOST_AUTO_TEST_CASE( test_DealIIAdjacencies )
   BOOST_CHECK_EQUAL(elem.index(),index);
 
 
+  // Check getElemAdjacentToNode
   std::pair<DataTransferKit::DealIINode<dim,spacedim>, std::vector<
     dealii::TriaActiveIterator<dealii::CellAccessor<dim,spacedim>>>> node_elems =
     dealii_adjacencies->getElemAdjacentToNode(705);
