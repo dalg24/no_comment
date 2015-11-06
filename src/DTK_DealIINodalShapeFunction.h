@@ -8,8 +8,8 @@
 #include <Teuchos_Array.hpp>
 
 #include <deal.II/dofs/dof_handler.h>
-#include <deal.II/fe/fe_values.h>
-#include <deal.II/base/quadrature.h>
+//#include <deal.II/fe/fe_values.h>
+//#include <deal.II/base/quadrature.h>
 
 namespace DataTransferKit
 {
@@ -66,16 +66,12 @@ private:
 
     // Deal.II Degrees of Freedom Handler.
     Teuchos::RCP<dealii::DoFHandler<dim,spacedim>> d_dealii_dof_handler;
-    // Deal.II Finite Element Values.
-    Teuchos::RCP<dealii::FEValues<dim,spacedim>>   d_dealii_fe_values;
-    // Deal.II Quadrature (points of interest where FE are evaluated)
-    Teuchos::RCP<dealii::Quadrature<dim>>          d_dealii_quadrature;
+//    // Deal.II Finite Element Values.
+//    Teuchos::RCP<dealii::FEValues<dim,spacedim>>   d_dealii_fe_values;
+//    // Deal.II Quadrature (points of interest where FE are evaluated)
+//    Teuchos::RCP<dealii::Quadrature<dim>>          d_dealii_quadrature;
 
 };
-
-
-
-template class DealIINodalShapeFunction<3,3>;
 
 } // end namespace DataTransferKit
 

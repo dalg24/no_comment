@@ -1,5 +1,8 @@
 #include <no_comment/DTK_DealIINodalShapeFunction.h>
 #include <no_comment/DTK_DealIIHelpers.h>
+#include <deal.II/fe/fe_values.h>
+#include <deal.II/dofs/dof_accessor.h>
+#include <deal.II/base/quadrature.h>
 #include <DTK_DBC.hpp>
 
 namespace DataTransferKit
@@ -11,13 +14,13 @@ DealIINodalShapeFunction(
     const Teuchos::RCP<dealii::DoFHandler<dim,spacedim>>& dealii_dof_handler )
     : d_dealii_dof_handler( dealii_dof_handler )
 {
-    d_dealii_quadrature =
-        Teuchos::rcp(new dealii::Quadrature<dim>());
-    // @Bruno: should we also somehow pass the mapping?
-    d_dealii_fe_values =
-        Teuchos::rcp(new dealii::FEValues<dim,spacedim>(
-            d_dealii_dof_handler->get_fe(), *d_dealii_quadrature,
-            dealii::update_values | dealii::update_gradients ) );
+//    d_dealii_quadrature =
+//        Teuchos::rcp(new dealii::Quadrature<dim>());
+//    // @Bruno: should we also somehow pass the mapping?
+//    d_dealii_fe_values =
+//        Teuchos::rcp(new dealii::FEValues<dim,spacedim>(
+//            d_dealii_dof_handler->get_fe(), *d_dealii_quadrature,
+//            dealii::update_values | dealii::update_gradients ) );
 }
 
 
@@ -29,27 +32,14 @@ entitySupportIds(
     const Entity& entity,
     Teuchos::Array<SupportId>& support_ids ) const
 {
-    auto cell_iterator = DealIIHelpers::getCellIterator<dim,spacedim>(entity);
-    
-//    // Node case.
-//    if ( 0 == entity.topologicalDimension() )
-//    {
-//	DTK_CHECK( extractGeom<libMesh::Node>(entity)->valid_id() );
-//	support_ids.assign( 1, extractGeom<libMesh::Node>(entity)->id() );
-//    }
-//
-//    // Element case.
-//    else
-//    {
-//	Teuchos::Ptr<libMesh::Elem> elem = extractGeom<libMesh::Elem>(entity);
-//	int num_nodes = elem->n_nodes();
-//	support_ids.resize( num_nodes );
-//	for ( int n = 0; n < num_nodes; ++n )
-//	{
-//	    DTK_CHECK( elem->get_node(n)->valid_id() );
-//	    support_ids[n] = elem->get_node(n)->id();
-//	}
-//    }
+    auto dof_accessor = *(d_dealii_dof_handler->begin_active());
+    dof_accessor.copy_from(
+        *DealIIHelpers::getCellIterator<dim,spacedim>(entity) );
+
+    std::vector<dealii::types::global_dof_index> dof_indices;
+    dof_accessor.get_dof_indices(dof_indices);
+
+    support_ids.assign(dof_indices.begin(), dof_indices.end());
 }
 
 
@@ -62,25 +52,18 @@ evaluateValue(
     const Teuchos::ArrayView<const double>& reference_point,
     Teuchos::Array<double>& values ) const
 {
-    auto cell_iterator = DealIIHelpers::getCellIterator<dim,spacedim>(entity);
-    d_dealii_fe_values->reinit(cell_iterator);
-//    int space_dim = entity.physicalDimension();
-//    libMesh::Point lm_reference_point;
-//    for ( int d = 0; d < space_dim; ++d )
-//    {
-//	lm_reference_point(d) = reference_point[d];
-//    }
-//
-//    libMesh::FEComputeData fe_compute_data(
-//	d_libmesh_system->get_equation_systems(), lm_reference_point );
-//
-//    libMesh::FEInterface::compute_data(
-//	space_dim,
-//	d_libmesh_system->variable_type(0),
-//	extractGeom<libMesh::Elem>(entity).getRawPtr(),
-//	fe_compute_data );
-//
-//    values = fe_compute_data.shape;
+    dealii::FEValues<dim,spacedim> fe_values(
+        d_dealii_dof_handler->get_fe(),
+        DealIIHelpers::getPoint<dim>(reference_point),
+        dealii::update_values );
+
+    fe_values.reinit(
+        DealIIHelpers::getCellIterator<dim,spacedim>(entity) );
+
+    int const dofs_per_cell = fe_values.dofs_per_cell;
+    values.resize(dofs_per_cell);
+    for (int dof = 0; dof < dofs_per_cell; ++dof)
+        values[dof] = fe_values.shape_value(dof, 0);
 }
 
 
@@ -93,8 +76,22 @@ evaluateGradient(
     const Teuchos::ArrayView<const double>& reference_point,
     Teuchos::Array<Teuchos::Array<double> >& gradients ) const
 {
-//    return EntityShapeFunction::evaluateGradient(
-//	entity, reference_point, gradients );
+    dealii::FEValues<dim,spacedim> fe_values(
+        d_dealii_dof_handler->get_fe(),
+        DealIIHelpers::getPoint<dim>(reference_point),
+        dealii::update_gradients );
+
+    fe_values.reinit(
+        DealIIHelpers::getCellIterator<dim,spacedim>(entity) );
+
+    int const dofs_per_cell = fe_values.dofs_per_cell;
+    gradients.resize(dofs_per_cell);
+    for (int dof = 0; dof < dofs_per_cell; ++dof)
+        gradients[dof] = DealIIHelpers::getArray<spacedim>(
+            fe_values.shape_grad(dof, 0) );
 }
+
+template class DealIINodalShapeFunction<2,2>;
+template class DealIINodalShapeFunction<3,3>;
 
 } // end namespace DataTransferKit
