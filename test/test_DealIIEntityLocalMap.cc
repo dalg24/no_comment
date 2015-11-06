@@ -7,7 +7,7 @@
 #include <no_comment/DTK_DealIIEntity.h>
 #include <no_comment/DTK_DealIIEntityLocalMap.h>
 
-BOOST_AUTO_TEST_CASE( test_DealIIEntityLocalMap )
+BOOST_AUTO_TEST_CASE( test_DealIIEntityLocalMap_elem )
 {
     // Probably want to call templated function
     int const structdim = 3;
