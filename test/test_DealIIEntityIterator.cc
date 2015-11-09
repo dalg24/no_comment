@@ -28,15 +28,17 @@ BOOST_AUTO_TEST_CASE( test_DealIIEntitySet )
         dealii::Point<spacedim>( 0.0,  0.0,  0.0),
         true);
 
+    Teuchos::RCP<DataTransferKit::DealIIAdjacencies<dim,spacedim>> adjacencies =
+        Teuchos::rcp(new DataTransferKit::DealIIAdjacencies<dim,spacedim>(dealii_mesh));
+
     // Create a dtk entity set
-    auto select_all = [](DataTransferKit::Entity const &){return true;};
-//    DataTransferKit::EntityIterator dtk_entity_iterator =
-//        DealIIEntityIterator<dim,spacedim>(
-//            dealii_mesh->begin_active(),
-//            dealii_mesh->begin_active(),
-//            dealii_mesh->end(),
-//            Teuchos::Ptr<dealii::parallel::distributed::Triangulation<dim,spacedim>>(dealii_mesh.get()),
-//            Teuchos::Ptr<DealIIAdjacencies<dim,spacedim>>(),
-//            select_all
-//        );
+    auto selectAll = [](DataTransferKit::Entity const &){return true;};
+    DataTransferKit::EntityIterator dtk_entity_iterator =
+        DataTransferKit::DealIIEntityIterator<dim,dim,spacedim>(
+            dealii_mesh->begin_active(),
+            dealii_mesh->begin_active(),
+            dealii_mesh->end(),
+            adjacencies.ptr(),
+            selectAll
+        );
 }
