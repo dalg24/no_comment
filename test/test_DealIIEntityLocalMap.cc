@@ -32,7 +32,7 @@ BOOST_AUTO_TEST_CASE( test_DealIIEntityLocalMap_elem )
 
     // Create a dtk entity for the single volume element in the mesh
     DataTransferKit::Entity dtk_entity =
-        DataTransferKit::DealIIEntity<structdim,dim,spacedim>(*dealii_tria_iterator, adjacencies);
+        DataTransferKit::DealIIEntity<structdim,dim,spacedim>(*dealii_tria_iterator, adjacencies.ptr());
 
     // Create a local map
     auto dealii_mapping =

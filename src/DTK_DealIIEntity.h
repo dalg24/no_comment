@@ -14,7 +14,7 @@ class DealIIEntity : public Entity
 {
 public:
     DealIIEntity(DealIIGeom<structdim,dim,spacedim> const & dealii_tria_accessor,
-                 Teuchos::RCP<DealIIAdjacencies<dim,spacedim> const> adjacencies);
+                 Teuchos::Ptr<DealIIAdjacencies<dim,spacedim> const> adjacencies);
 };
 
 } // end namespace DataTransferKit

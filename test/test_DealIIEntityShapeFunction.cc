@@ -61,7 +61,7 @@ BOOST_AUTO_TEST_CASE( test_DealIIEntityShapeFunction )
 
         // Create a dtk entity for the single volume element in the mesh
         DataTransferKit::Entity dtk_entity =
-            DataTransferKit::DealIIEntity<dim,dim,spacedim>(tria_accessor, adjacencies);
+            DataTransferKit::DealIIEntity<dim,dim,spacedim>(tria_accessor, adjacencies.ptr());
 
         // Get support ids of the element
         Teuchos::Array<DataTransferKit::EntityId> dtk_entity_support_ids;

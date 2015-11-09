@@ -45,7 +45,7 @@ BOOST_AUTO_TEST_CASE( test_DealIIEntity_elem )
 
         // Create a dtk entity for the single volume element in the mesh
         DataTransferKit::Entity dtk_entity =
-            DataTransferKit::DealIIEntity<structdim,dim,spacedim>(tria_accessor, adjacencies);
+            DataTransferKit::DealIIEntity<structdim,dim,spacedim>(tria_accessor, adjacencies.ptr());
 
         // Print out the entity.
         Teuchos::RCP<Teuchos::FancyOStream> fancy_os =
@@ -153,7 +153,7 @@ BOOST_AUTO_TEST_CASE( test_DealIIEntity_node )
           auto vertex_iterator = tria_accessor.vertex_iterator(i);
           DataTransferKit::Entity dtk_entity =
             DataTransferKit::DealIIEntity<structdim,dim,spacedim>(*vertex_iterator,
-               adjacencies);
+               adjacencies.ptr());
           // Print out the entity.
           Teuchos::RCP<Teuchos::FancyOStream> fancy_os =
               Teuchos::VerboseObjectBase::getDefaultOStream();
