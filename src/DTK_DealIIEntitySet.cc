@@ -1,4 +1,5 @@
-#include "DTK_DealIIEntitySet.h"
+#include <no_comment/DTK_DealIIEntitySet.h>
+#include <no_comment/DTK_DealIIEntityIterator.h>
 
 #include <Teuchos_DefaultMpiComm.hpp>
 
@@ -39,24 +40,32 @@ getEntity(const EntityId entity_id,
 {
     if (topological_dimension == dim)
         entity = DealIIEntity<dim,dim,spacedim>(
-            adjacencies->getElemById(entity_id), adjacencies);
+            adjacencies->getElemById(entity_id), adjacencies.ptr());
     else if (topological_dimension == 0)
         entity = DealIIEntity<  0,dim,spacedim>(
-            adjacencies->getNodeById(entity_id), adjacencies);
+            adjacencies->getNodeById(entity_id), adjacencies.ptr());
     else
         throw std::runtime_error("not implemented");
 }
+
 
 template <int dim,int spacedim>
 EntityIterator
 DealIIEntitySet<dim,spacedim>::
 entityIterator(
     const int topological_dimension,
-    const std::function<bool(Entity)>& predicate) const
+    const PredicateFunction& predicate) const
 {
-    std::ignore = topological_dimension;
-    std::ignore = predicate;
-    throw std::runtime_error("not implemented");
+    if (topological_dimension != dim)
+        throw std::runtime_error("not implemented");
+    auto iterator_begin = dealii_triangulation->begin_active();
+    auto iterator_end   = dealii_triangulation->end();
+    return DealIIEntityIterator<dim,dim,spacedim>(
+        iterator_begin,
+        iterator_begin,
+        iterator_end,
+        adjacencies.ptr(),
+        predicate );
 }
 
 
@@ -73,7 +82,7 @@ getAdjacentEntities(
         adjacent_entities.resize(std::distance(ret.second.begin(), ret.second.end()));
         auto dtk_entity = adjacent_entities.begin();
         for (auto it = ret.second.begin(); it != ret.second.end(); ++it, ++dtk_entity)
-            *dtk_entity = DealIIEntity<dim,dim,spacedim>(**it, adjacencies);
+            *dtk_entity = DealIIEntity<dim,dim,spacedim>(**it, adjacencies.ptr());
         AssertThrow(
             dtk_entity == adjacent_entities.end(),
             dealii::ExcMessage("not good") );

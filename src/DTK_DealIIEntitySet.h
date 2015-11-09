@@ -34,7 +34,7 @@ public:
 
     DataTransferKit::EntityIterator entityIterator(
         const int topoligical_dimension,
-        const std::function<bool(DataTransferKit::Entity)>& predicate) const override;
+        const PredicateFunction& predicate = EntitySet::selectAll) const override;
 
     void getAdjacentEntities(
         const DataTransferKit::Entity& entity,
