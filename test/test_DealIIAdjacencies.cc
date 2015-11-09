@@ -44,7 +44,7 @@ BOOST_AUTO_TEST_CASE( test_DealIIAdjacencies )
   unsigned int index = 2;
   dealii::TriaAccessor<dim,dim,spacedim> elem_accessor(tria.get(), level, index);
   DataTransferKit::DealIIEntity<dim,dim,spacedim> elem_entity(elem_accessor,
-    dealii_adjacencies);
+    dealii_adjacencies.ptr());
   dealii::TriaAccessor<dim,dim,spacedim> elem = dealii_adjacencies->getElemById(
     elem_entity.id());
   BOOST_CHECK_EQUAL(elem.level(),level);
