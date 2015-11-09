@@ -106,10 +106,14 @@ getId(DealIIElem<dim,spacedim> const & elem) const
     EntityId entity_id;
     dealii::CellAccessor<dim,spacedim> dealii_cell_accessor(elem);
     std::string cell_id = dealii_cell_accessor.id().to_string();
-    const unsigned int cell_id_size = cell_id.size();
-    for (unsigned int i=0; i<cell_id.size(); ++i)
-      entity_id = (static_cast<int>(cell_id[i])<<
-          static_cast<int>(std::pow(8,cell_id_size-(i+1)))) | entity_id;
+    auto colon = cell_id.find(':');
+    auto underscore = cell_id.find('_');
+    unsigned long long int coarse_cell_id = std::stoul(cell_id.substr(0,underscore));
+      cell_id.substr(underscore=1,colon-1)<<std::endl;
+    unsigned long long int id =  (std::stoul(cell_id.substr(underscore+1,colon-1)) == 0) ? 0 :
+      std::stoul(cell_id.substr(colon+1));
+    entity_id = coarse_cell_id << std::numeric_limits<unsigned int>::digits | id;
+
     return entity_id;
 }
 
