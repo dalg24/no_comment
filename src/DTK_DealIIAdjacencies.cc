@@ -109,7 +109,6 @@ getId(DealIIElem<dim,spacedim> const & elem) const
     auto colon = cell_id.find(':');
     auto underscore = cell_id.find('_');
     unsigned long long int coarse_cell_id = std::stoul(cell_id.substr(0,underscore));
-      cell_id.substr(underscore=1,colon-1)<<std::endl;
     unsigned long long int id =  (std::stoul(cell_id.substr(underscore+1,colon-1)) == 0) ? 0 :
       std::stoul(cell_id.substr(colon+1));
     entity_id = coarse_cell_id << std::numeric_limits<unsigned int>::digits | id;
