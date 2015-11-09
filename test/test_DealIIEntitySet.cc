@@ -2,6 +2,7 @@
 #include "main_included.cc"
 #include <Teuchos_VerboseObject.hpp>
 #include <Teuchos_FancyOStream.hpp>
+#include <Teuchos_Tuple.hpp>
 #include <boost/test/unit_test.hpp>
 #include <boost/format.hpp>
 #include <deal.II/distributed/tria.h>
@@ -45,6 +46,19 @@ BOOST_AUTO_TEST_CASE( test_DealIIEntitySet )
 
     // Check physical dimension
     BOOST_ASSERT( dtk_entity_set->physicalDimension() == spacedim );
+
+    // Get iterator over the volume elements
+    DataTransferKit::EntityIterator dtk_iterator =
+        dtk_entity_set->entityIterator(dim);
+
+    Teuchos::Tuple<double,6> bounding_box;
+    dtk_entity_set->globalBoundingBox(bounding_box);
+    BOOST_CHECK_EQUAL( bounding_box[0], -1.0 );
+    BOOST_CHECK_EQUAL( bounding_box[1], -2.0 );
+    BOOST_CHECK_EQUAL( bounding_box[2], -3.0 );
+    BOOST_CHECK_EQUAL( bounding_box[3],  0.0 );
+    BOOST_CHECK_EQUAL( bounding_box[4],  0.0 );
+    BOOST_CHECK_EQUAL( bounding_box[5],  0.0 );
 
     // Get adjacencies
     Teuchos::Array<DataTransferKit::Entity> adjacent_elem;
