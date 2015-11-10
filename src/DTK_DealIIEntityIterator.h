@@ -18,14 +18,13 @@ class DealIIEntityIterator : public EntityIterator
         DealIIGeomIterator<structdim,dim,spacedim> dealii_iterator,
         DealIIGeomIterator<structdim,dim,spacedim> dealii_iterator_begin,
         DealIIGeomIterator<structdim,dim,spacedim> dealii_iterator_end,
-//        Teuchos::Ptr<DealIIMesh<dim,spacedim>> const &dealii_mesh,
         Teuchos::Ptr<DealIIAdjacencies<dim,spacedim>> const &adjacencies,
         PredicateFunction const &predicate );
 
     DealIIEntityIterator(DealIIEntityIterator<structdim,dim,spacedim> const &rhs);
 
     DealIIEntityIterator<structdim,dim,spacedim> &
-    operator= (DealIIEntityIterator<structdim,dim,spacedim> const &rhs);
+    operator=(DealIIEntityIterator<structdim,dim,spacedim> const &rhs);
 
     EntityIterator& operator++() override;
 
@@ -33,9 +32,9 @@ class DealIIEntityIterator : public EntityIterator
 
     Entity* operator->(void) override;
 
-    bool operator== (EntityIterator const &rhs) const override;
+    bool operator==(EntityIterator const &rhs) const override;
 
-    bool operator!= (EntityIterator const &rhs) const override;
+    bool operator!=(EntityIterator const &rhs) const override;
 
     EntityIterator begin() const override;
 
@@ -47,7 +46,6 @@ class DealIIEntityIterator : public EntityIterator
     DealIIGeomIterator<structdim,dim,spacedim> d_dealii_iterator;
     DealIIGeomIterator<structdim,dim,spacedim> d_dealii_iterator_begin;
     DealIIGeomIterator<structdim,dim,spacedim> d_dealii_iterator_end;
-//    Teuchos::Ptr<DealIIMesh<dim,spacedim>> d_dealii_mesh;
     Teuchos::Ptr<DealIIAdjacencies<dim,spacedim>> d_adjacencies;
     Entity d_current_entity;
 };

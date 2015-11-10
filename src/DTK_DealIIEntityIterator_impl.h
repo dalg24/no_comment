@@ -6,6 +6,15 @@
 
 namespace DataTransferKit {
 
+template <int dim,int spacedim>
+bool is_locally_owned(DealIIElemIterator<dim,spacedim> const & tria_iterator)
+{
+    dealii::CellAccessor<dim,spacedim> cell_accessor(*tria_iterator);
+//    return cell_accessor.is_locally_owned();
+    return true;
+}
+
+
 template <int structdim,int dim,int spacedim>
 DealIIEntityIterator<structdim,dim,spacedim>::
 DealIIEntityIterator()
@@ -25,6 +34,8 @@ DealIIEntityIterator(
     , d_dealii_iterator_end(dealii_iterator_end)
     , d_adjacencies(adjacencies)
 {
+    if (!is_locally_owned(d_dealii_iterator_begin))
+        this->operator++();
     this->b_predicate = predicate;
 }
 
@@ -33,7 +44,8 @@ template <int structdim,int dim,int spacedim>
 DealIIEntityIterator<structdim,dim,spacedim>::
 DealIIEntityIterator(
     DealIIEntityIterator<structdim,dim,spacedim> const & rhs)
-    : d_dealii_iterator(rhs.d_dealii_iterator)
+    : EntityIterator()
+    , d_dealii_iterator(rhs.d_dealii_iterator)
     , d_dealii_iterator_begin(rhs.d_dealii_iterator_begin)
     , d_dealii_iterator_end(rhs.d_dealii_iterator_end)
     , d_adjacencies(rhs.d_adjacencies)
@@ -48,14 +60,16 @@ DealIIEntityIterator<structdim,dim,spacedim>::
 operator=(DealIIEntityIterator<structdim,dim,spacedim> const & rhs)
 {
     this->b_predicate = rhs.b_predicate;
+
     if (&rhs==this)
         return *this;
+
     d_dealii_iterator = rhs.d_dealii_iterator;
     d_dealii_iterator_begin = rhs.d_dealii_iterator_begin;
     d_dealii_iterator_end = rhs.d_dealii_iterator_end;
     d_adjacencies = rhs.d_adjacencies;
 
-  return *this;
+    return *this;
 }
 
 
@@ -64,9 +78,12 @@ EntityIterator &
 DealIIEntityIterator<structdim,dim,spacedim>::
 operator++()
 {
-  ++d_dealii_iterator;
+    ++d_dealii_iterator;
+    while ((d_dealii_iterator != d_dealii_iterator_end) &&
+        !is_locally_owned(d_dealii_iterator))
+        ++d_dealii_iterator;
 
-  return *this;
+    return *this;
 }
 
 
@@ -85,11 +102,9 @@ Entity*
 DealIIEntityIterator<structdim,dim,spacedim>::
 operator->(void)
 {
-  // This will probably not work but it compiles which is the most important :-)
-  d_current_entity = DealIIEntity<structdim,dim,spacedim>(
-      *d_dealii_iterator, d_adjacencies);
-
-  return &d_current_entity;
+    d_current_entity = DealIIEntity<structdim,dim,spacedim>(
+        *d_dealii_iterator, d_adjacencies );
+    return &d_current_entity;
 }
 
 
@@ -97,12 +112,10 @@ template <int structdim,int dim,int spacedim>
 bool DealIIEntityIterator<structdim,dim,spacedim>::
 operator==(EntityIterator const &rhs) const
 {
-  DealIIEntityIterator const* rhs_it = 
-    static_cast<DealIIEntityIterator const*>(&rhs);
-  DealIIEntityIterator const* rhs_it_impl = 
-    static_cast<DealIIEntityIterator const*>(rhs_it->b_iterator_impl.get());
-
-  return (rhs_it_impl->d_dealii_iterator == d_dealii_iterator);
+    return ( static_cast<DealIIEntityIterator const*>(
+        static_cast<DealIIEntityIterator const&>(
+            rhs ).b_iterator_impl.get()
+        )->d_dealii_iterator == d_dealii_iterator );
 }
 
 
@@ -110,12 +123,7 @@ template <int structdim,int dim,int spacedim>
 bool DealIIEntityIterator<structdim,dim,spacedim>::
 operator!=(EntityIterator const & rhs) const
 {
-  DealIIEntityIterator const* rhs_it =
-    static_cast<DealIIEntityIterator const*>(&rhs);
-  DealIIEntityIterator const* rhs_it_impl =
-    static_cast<DealIIEntityIterator const*>(rhs_it->b_iterator_impl.get());
-
-  return (rhs_it_impl->d_dealii_iterator != d_dealii_iterator);
+  return !(this->operator==(rhs));
 }
 
 
@@ -124,12 +132,12 @@ EntityIterator
 DealIIEntityIterator<structdim,dim,spacedim>::
 begin() const
 {
-  return DealIIEntityIterator(d_dealii_iterator_begin,
-      d_dealii_iterator_begin,
-      d_dealii_iterator_end,
-//      d_dealii_mesh,
-      d_adjacencies,
-      this->b_predicate);
+    return DealIIEntityIterator(
+        d_dealii_iterator_begin,
+        d_dealii_iterator_begin,
+        d_dealii_iterator_end,
+        d_adjacencies,
+        this->b_predicate);
 }
 
 
@@ -139,12 +147,12 @@ EntityIterator
 DealIIEntityIterator<structdim,dim,spacedim>::
 end() const
 {
-  return DealIIEntityIterator(d_dealii_iterator_end,
-      d_dealii_iterator_begin,
-      d_dealii_iterator_end,
-//      d_dealii_mesh,
-      d_adjacencies,
-      this->b_predicate);
+    return DealIIEntityIterator(
+        d_dealii_iterator_end,
+        d_dealii_iterator_begin,
+        d_dealii_iterator_end,
+        d_adjacencies,
+        this->b_predicate);
 }
 
 
