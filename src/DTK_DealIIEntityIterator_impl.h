@@ -37,6 +37,7 @@ DealIIEntityIterator(
 {
     if (is_artificial(d_dealii_iterator_begin))
         this->operator++();
+    d_dealii_iterator_begin = d_dealii_iterator;
     this->b_predicate = predicate;
 }
 
