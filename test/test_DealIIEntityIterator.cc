@@ -46,23 +46,26 @@ BOOST_AUTO_TEST_CASE( test_DealIIEntitySet )
     auto const iterator_end   = dtk_entity_iterator.end  ();
     BOOST_CHECK( dtk_entity_iterator == iterator_begin );
     BOOST_CHECK( dtk_entity_iterator != iterator_end   );
-    std::set<DataTransferKit::EntityId> entity_ids;
+    std::map<DataTransferKit::EntityId,int> entities;
     for (dtk_entity_iterator = iterator_begin;
         dtk_entity_iterator != iterator_end; ++dtk_entity_iterator)
     {
-        entity_ids.emplace(dtk_entity_iterator->id());
-        BOOST_CHECK_EQUAL( dtk_entity_iterator->ownerRank(), world.rank() );
+        entities.emplace(
+            std::pair<DataTransferKit::EntityId,int>(
+                dtk_entity_iterator->id(),dtk_entity_iterator->ownerRank() )
+        );
+//        BOOST_CHECK_EQUAL( dtk_entity_iterator->ownerRank(), world.rank() );
     }
     BOOST_CHECK( dtk_entity_iterator == iterator_end   );
     BOOST_CHECK( dtk_entity_iterator != iterator_begin );
 
     // Check iterator size
-    BOOST_CHECK_EQUAL( dtk_entity_iterator.size(), entity_ids.size() );
+    BOOST_CHECK_EQUAL( dtk_entity_iterator.size(), entities.size() );
 
-    // Print rank and set of entity ids owned
-    std::cout<<world.rank()<<" : ";
-    for (auto id : entity_ids)
-        std::cout<<id<<"  ";
+    // Print rank(number of entities) : set of entity id(owner rank)
+    std::cout<<world.rank()<<"("<<entities.size()<<") : ";
+    for (auto entity : entities)
+        std::cout<<entity.first<<"("<<entity.second<<")  ";
     std::cout<<"\n";
 
 

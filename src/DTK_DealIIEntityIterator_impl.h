@@ -6,12 +6,13 @@
 
 namespace DataTransferKit {
 
+// check whether cell is neither locally owned nor ghost
 template <int dim,int spacedim>
-bool is_locally_owned(DealIIElemIterator<dim,spacedim> const & tria_iterator)
+bool is_artificial(DealIIElemIterator<dim,spacedim> const & tria_iterator)
 {
     dealii::CellAccessor<dim,spacedim> cell_accessor(*tria_iterator);
-//    return cell_accessor.is_locally_owned();
-    return true;
+    return ( cell_accessor.subdomain_id() ==
+        dealii::numbers::artificial_subdomain_id );
 }
 
 
@@ -34,7 +35,7 @@ DealIIEntityIterator(
     , d_dealii_iterator_end(dealii_iterator_end)
     , d_adjacencies(adjacencies)
 {
-    if (!is_locally_owned(d_dealii_iterator_begin))
+    if (is_artificial(d_dealii_iterator_begin))
         this->operator++();
     this->b_predicate = predicate;
 }
@@ -80,7 +81,7 @@ operator++()
 {
     ++d_dealii_iterator;
     while ((d_dealii_iterator != d_dealii_iterator_end) &&
-        !is_locally_owned(d_dealii_iterator))
+        is_artificial(d_dealii_iterator))
         ++d_dealii_iterator;
 
     return *this;
@@ -109,7 +110,8 @@ operator->(void)
 
 
 template <int structdim,int dim,int spacedim>
-bool DealIIEntityIterator<structdim,dim,spacedim>::
+bool
+DealIIEntityIterator<structdim,dim,spacedim>::
 operator==(EntityIterator const &rhs) const
 {
     return ( static_cast<DealIIEntityIterator const*>(
@@ -120,7 +122,8 @@ operator==(EntityIterator const &rhs) const
 
 
 template <int structdim,int dim,int spacedim>
-bool DealIIEntityIterator<structdim,dim,spacedim>::
+bool
+DealIIEntityIterator<structdim,dim,spacedim>::
 operator!=(EntityIterator const & rhs) const
 {
   return !(this->operator==(rhs));
