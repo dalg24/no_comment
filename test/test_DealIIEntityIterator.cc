@@ -65,4 +65,24 @@ BOOST_AUTO_TEST_CASE( test_DealIIEntitySet )
         std::cout<<id<<"  ";
     std::cout<<"\n";
 
+
+    // Select locally owned elems
+    int const rank = world.rank();
+    auto selectLocallyOwned =
+        [rank](DataTransferKit::Entity const & entity)
+        {
+            return entity.ownerRank() == rank;
+        };
+     dtk_entity_iterator =
+        DataTransferKit::DealIIEntityIterator<dim,dim,spacedim>(
+            dealii_mesh->begin_active(),
+            dealii_mesh->begin_active(),
+            dealii_mesh->end(),
+            adjacencies.ptr(),
+            selectLocallyOwned
+        );
+     size_t const global_size = boost::mpi::all_reduce(
+         world, dtk_entity_iterator.size(), std::plus<size_t>() );
+     BOOST_CHECK_EQUAL( global_size, 64 );
+
 }
