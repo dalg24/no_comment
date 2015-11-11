@@ -6,7 +6,7 @@ namespace DataTransferKit {
 template <int structdim,int dim,int spacedim>
 DealIIEntity<structdim,dim,spacedim>::
 DealIIEntity(DealIIGeom<structdim,dim,spacedim> const & dealii_tria_accessor,
-             Teuchos::Ptr<DealIIAdjacencies<dim,spacedim> const> adjacencies)
+             Teuchos::Ptr<DealIIAdjacencies<dim,spacedim> const> const & adjacencies)
 {
     this->b_entity_impl = Teuchos::rcp(
         new DealIIEntityImpl<structdim,dim,spacedim>(
