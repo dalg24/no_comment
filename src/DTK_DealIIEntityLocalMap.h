@@ -2,7 +2,7 @@
 #define DTK_DEALIIENTITYLOCALMAP_HPP
 
 #include <DTK_EntityLocalMap.hpp>
-
+#include <Teuchos_RCP.hpp>
 #include <deal.II/fe/mapping.h>
 
 namespace DataTransferKit {
@@ -12,7 +12,7 @@ class DealIIEntityLocalMap : public EntityLocalMap
 {
 public:
 
-    DealIIEntityLocalMap(std::shared_ptr<dealii::Mapping<dim,spacedim> const> mapping);
+    DealIIEntityLocalMap(Teuchos::RCP<dealii::Mapping<dim,spacedim> const> const & mapping);
 
     /*
      * \brief Set parameters for mapping.
@@ -112,7 +112,7 @@ public:
         const Teuchos::ArrayView<double>& normal ) const override;
 
 private:
-    std::shared_ptr<dealii::Mapping<dim,spacedim> const> dealii_mapping;
+    Teuchos::RCP<dealii::Mapping<dim,spacedim> const> dealii_mapping;
 };
 
 } // end namespace DataTransferKit

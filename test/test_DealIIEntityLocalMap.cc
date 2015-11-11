@@ -35,10 +35,10 @@ BOOST_AUTO_TEST_CASE( test_DealIIEntityLocalMap_elem )
         DataTransferKit::DealIIEntity<structdim,dim,spacedim>(*dealii_tria_iterator, adjacencies.ptr());
 
     // Create a local map
-    auto dealii_mapping =
-        std::make_shared<dealii::MappingQ1<dim,spacedim>>();
+    Teuchos::RCP<dealii::Mapping<dim,spacedim>> dealii_mapping =
+        Teuchos::rcp(new dealii::MappingQ1<dim,spacedim>());
     Teuchos::RCP<DataTransferKit::EntityLocalMap> dtk_entity_local_map =
-        Teuchos::rcp(new DataTransferKit::DealIIEntityLocalMap<structdim,dim,spacedim>(dealii_mapping) );
+        Teuchos::rcp(new DataTransferKit::DealIIEntityLocalMap<structdim,dim,spacedim>(dealii_mapping));
 
     // Measure
     double const percent_tolerance = 1.0e-10;

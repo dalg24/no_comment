@@ -47,7 +47,7 @@ namespace internal
 
 template <int structdim,int dim,int spacedim>
 DealIIEntityLocalMap<structdim,dim,spacedim>::
-DealIIEntityLocalMap(std::shared_ptr<dealii::Mapping<dim,spacedim> const> mapping)
+DealIIEntityLocalMap(Teuchos::RCP<dealii::Mapping<dim,spacedim> const> const & mapping)
 : dealii_mapping(mapping)
 {}
 
