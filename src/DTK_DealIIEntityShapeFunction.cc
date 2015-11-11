@@ -11,7 +11,7 @@ namespace DataTransferKit
 template <int dim,int spacedim>
 DealIIEntityShapeFunction<dim,spacedim>::
 DealIIEntityShapeFunction(
-    const Teuchos::RCP<dealii::DoFHandler<dim,spacedim>>& dealii_dof_handler )
+    Teuchos::RCP<dealii::DoFHandler<dim,spacedim> const> const & dealii_dof_handler )
     : d_dealii_dof_handler( dealii_dof_handler )
 {
 //    d_dealii_quadrature =

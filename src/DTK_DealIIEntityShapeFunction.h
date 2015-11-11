@@ -20,7 +20,7 @@ class DealIIEntityShapeFunction : public EntityShapeFunction
 public:
 
     DealIIEntityShapeFunction( 
-      	const Teuchos::RCP<dealii::DoFHandler<dim,spacedim>>& dealii_dof_handler );
+      	Teuchos::RCP<dealii::DoFHandler<dim,spacedim> const> const & dealii_dof_handler );
 
     /*!
      * \brief Given an entity, get the ids of its support locations.
@@ -65,7 +65,7 @@ public:
 private:
 
     // Deal.II Degrees of Freedom Handler.
-    Teuchos::RCP<dealii::DoFHandler<dim,spacedim>> d_dealii_dof_handler;
+    Teuchos::RCP<dealii::DoFHandler<dim,spacedim> const> d_dealii_dof_handler;
 //    // Deal.II Finite Element Values.
 //    Teuchos::RCP<dealii::FEValues<dim,spacedim>>   d_dealii_fe_values;
 //    // Deal.II Quadrature (points of interest where FE are evaluated)
