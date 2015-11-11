@@ -32,15 +32,23 @@ entitySupportIds(
     const Entity& entity,
     Teuchos::Array<SupportId>& support_ids ) const
 {
-    auto dof_accessor = *(d_dealii_dof_handler->begin_active());
-    dof_accessor.copy_from(
-        *DealIIHelpers::getCellIterator<dim,spacedim>(entity) );
+    if (entity.topologicalDimension() == dim) {
+        auto dof_accessor = *(d_dealii_dof_handler->begin_active());
+        dof_accessor.copy_from(
+            *DealIIHelpers::getCellIterator<dim,spacedim>(entity) );
 
-    int const dofs_per_cell = d_dealii_dof_handler->get_fe().dofs_per_cell;
-    std::vector<dealii::types::global_dof_index> dof_indices(dofs_per_cell);
-    dof_accessor.get_dof_indices(dof_indices);
+        int const dofs_per_cell = d_dealii_dof_handler->get_fe().dofs_per_cell;
+        std::vector<dealii::types::global_dof_index> dof_indices(dofs_per_cell);
+        dof_accessor.get_dof_indices(dof_indices);
 
-    support_ids.assign(dof_indices.begin(), dof_indices.end());
+        support_ids.assign(dof_indices.begin(), dof_indices.end());
+    } else if (entity.topologicalDimension() == 0) {
+        throw std::runtime_error("TODO");
+    } else {
+        throw std::runtime_error(
+            "entitySupportIds not implemented for topologicalDimension ("
+            +std::to_string(entity.topologicalDimension())+")" );
+    }
 }
 
 
