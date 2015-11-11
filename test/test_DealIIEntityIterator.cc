@@ -1,16 +1,11 @@
 #define BOOST_TEST_MODULE DealIIEntityIterator
 #include "main_included.cc"
-#include <Teuchos_VerboseObject.hpp>
-#include <Teuchos_FancyOStream.hpp>
-#include <boost/test/unit_test.hpp>
-#include <boost/format.hpp>
-#include <boost/mpi.hpp>
+#include <no_comment/DTK_DealIIEntityIterator.h>
+#include <Teuchos_RCP.hpp>
 #include <deal.II/distributed/tria.h>
 #include <deal.II/grid/grid_generator.h>
-#include <deal.II/grid/grid_tools.h>
-#include <deal.II/base/mpi.h>
-#include <no_comment/DTK_DealIIEntityIterator.h>
-#include <functional>
+#include <boost/test/unit_test.hpp>
+#include <boost/mpi.hpp>
 
 BOOST_AUTO_TEST_CASE( test_DealIIEntitySet )
 {
@@ -22,12 +17,16 @@ BOOST_AUTO_TEST_CASE( test_DealIIEntitySet )
     boost::mpi::communicator world;
     Teuchos::RCP<DataTransferKit::DealIIMesh<dim,spacedim>> dealii_mesh =
         Teuchos::rcp(new DataTransferKit::DealIIMesh<dim,spacedim>(world));
-    dealii::GridGenerator::hyper_rectangle(*dealii_mesh,
+    dealii::GridGenerator::hyper_rectangle(
+        *dealii_mesh,
         dealii::Point<spacedim>(-1.0, -2.0, -3.0),
         dealii::Point<spacedim>( 0.0,  0.0,  0.0),
-        true);
-    dealii_mesh->refine_global(2);
+        true );
+    int const n = 0;
+    dealii_mesh->refine_global(n);
+    int const elems = dealii_mesh->n_active_cells();
 
+    // Wrap it
     Teuchos::RCP<DataTransferKit::DealIIAdjacencies<dim,spacedim>> adjacencies =
         Teuchos::rcp(new DataTransferKit::DealIIAdjacencies<dim,spacedim>(dealii_mesh));
 
@@ -36,8 +35,7 @@ BOOST_AUTO_TEST_CASE( test_DealIIEntitySet )
     DataTransferKit::EntityIterator dtk_entity_iterator =
         DataTransferKit::DealIIEntityIterator<dim,dim,spacedim>(
             adjacencies.ptr(),
-            selectAll
-        );
+            selectAll );
 
     auto const iterator_begin = dtk_entity_iterator.begin();
     auto const iterator_end   = dtk_entity_iterator.end  ();
@@ -46,13 +44,10 @@ BOOST_AUTO_TEST_CASE( test_DealIIEntitySet )
     std::map<DataTransferKit::EntityId,int> entities;
     for (dtk_entity_iterator = iterator_begin;
         dtk_entity_iterator != iterator_end; ++dtk_entity_iterator)
-    {
         entities.emplace(
             std::pair<DataTransferKit::EntityId,int>(
-                dtk_entity_iterator->id(),dtk_entity_iterator->ownerRank() )
-        );
-//        BOOST_CHECK_EQUAL( dtk_entity_iterator->ownerRank(), world.rank() );
-    }
+                dtk_entity_iterator->id(),
+                dtk_entity_iterator->ownerRank() ) );
     BOOST_CHECK( dtk_entity_iterator == iterator_end   );
     BOOST_CHECK( dtk_entity_iterator != iterator_begin );
 
@@ -65,21 +60,17 @@ BOOST_AUTO_TEST_CASE( test_DealIIEntitySet )
         std::cout<<entity.first<<"("<<entity.second<<")  ";
     std::cout<<"\n";
 
-
-    // Select locally owned elems
+    // Select locally owned elems and check the global number of elements
     int const rank = world.rank();
     auto selectLocallyOwned =
         [rank](DataTransferKit::Entity const & entity)
-        {
-            return entity.ownerRank() == rank;
-        };
+        { return entity.ownerRank() == rank; };
      dtk_entity_iterator =
         DataTransferKit::DealIIEntityIterator<dim,dim,spacedim>(
             adjacencies.ptr(),
-            selectLocallyOwned
-        );
+            selectLocallyOwned );
      size_t const global_size = boost::mpi::all_reduce(
          world, dtk_entity_iterator.size(), std::plus<size_t>() );
-     BOOST_CHECK_EQUAL( global_size, 64 );
+     BOOST_CHECK_EQUAL( global_size, elems );
 
 }
