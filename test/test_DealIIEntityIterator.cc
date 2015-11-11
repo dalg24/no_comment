@@ -22,7 +22,7 @@ BOOST_AUTO_TEST_CASE( test_DealIIEntitySet )
         dealii::Point<spacedim>(-1.0, -2.0, -3.0),
         dealii::Point<spacedim>( 0.0,  0.0,  0.0),
         true );
-    int const n = 0;
+    int const n = 2;
     dealii_mesh->refine_global(n);
     int const elems = dealii_mesh->n_active_cells();
 

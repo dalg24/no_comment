@@ -24,7 +24,6 @@ BOOST_AUTO_TEST_CASE( test_DealIIEntitySet )
         dealii::Point<spacedim>(-1.0, -2.0, -3.0),
         dealii::Point<spacedim>( 0.0,  0.0,  0.0),
         true);
-    dealii_mesh->refine_global(0);
 
     // Create a dtk entity set
     Teuchos::RCP<DataTransferKit::EntitySet> dtk_entity_set =
@@ -41,16 +40,18 @@ BOOST_AUTO_TEST_CASE( test_DealIIEntitySet )
     // Get iterator over the volume elements
     DataTransferKit::EntityIterator dtk_entity_iterator =
         dtk_entity_set->entityIterator(dim);
-    BOOST_CHECK_EQUAL( dtk_entity_iterator.size(), 1 );
+    int const global_size =
+        boost::mpi::all_reduce(world, dtk_entity_iterator.size(), std::plus<double>());
+    BOOST_CHECK_EQUAL( global_size, 1 );
 
     Teuchos::Tuple<double,6> bounding_box;
-//    dtk_entity_set->globalBoundingBox(bounding_box);
-//    BOOST_CHECK_EQUAL( bounding_box[0], -1.0 );
-//    BOOST_CHECK_EQUAL( bounding_box[1], -2.0 );
-//    BOOST_CHECK_EQUAL( bounding_box[2], -3.0 );
-//    BOOST_CHECK_EQUAL( bounding_box[3],  0.0 );
-//    BOOST_CHECK_EQUAL( bounding_box[4],  0.0 );
-//    BOOST_CHECK_EQUAL( bounding_box[5],  0.0 );
+    dtk_entity_set->globalBoundingBox(bounding_box);
+    BOOST_CHECK_EQUAL( bounding_box[0], -1.0 );
+    BOOST_CHECK_EQUAL( bounding_box[1], -2.0 );
+    BOOST_CHECK_EQUAL( bounding_box[2], -3.0 );
+    BOOST_CHECK_EQUAL( bounding_box[3],  0.0 );
+    BOOST_CHECK_EQUAL( bounding_box[4],  0.0 );
+    BOOST_CHECK_EQUAL( bounding_box[5],  0.0 );
 
     // Get adjacencies
     Teuchos::Array<DataTransferKit::Entity> adjacent_elem;
