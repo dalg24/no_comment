@@ -1,8 +1,6 @@
-#ifndef DTK_DEALIIENTITYITERATOR_IMPL_H
-#define DTK_DEALIIENTITYITERATOR_IMPL_H
-
-#include <type_traits>
 #include <no_comment/DTK_DealIIEntity.h>
+#include <no_comment/DTK_DealIIEntityIterator.h>
+#include <type_traits>
 
 namespace DataTransferKit {
 
@@ -25,19 +23,15 @@ DealIIEntityIterator()
 template <int structdim,int dim,int spacedim>
 DealIIEntityIterator<structdim,dim,spacedim>::
 DealIIEntityIterator(
-    DealIIGeomIterator<structdim,dim,spacedim> dealii_iterator,
-    DealIIGeomIterator<structdim,dim,spacedim> dealii_iterator_begin,
-    DealIIGeomIterator<structdim,dim,spacedim> dealii_iterator_end,
-    Teuchos::Ptr<DealIIAdjacencies<dim,spacedim>> const &adjacencies,
+    Teuchos::Ptr<DealIIAdjacencies<dim,spacedim> const> const & adjacencies,
     PredicateFunction const &predicate)
-    : d_dealii_iterator(dealii_iterator)
-    , d_dealii_iterator_begin(dealii_iterator_begin)
-    , d_dealii_iterator_end(dealii_iterator_end)
-    , d_adjacencies(adjacencies)
+    : d_adjacencies(adjacencies)
 {
-    if (is_artificial(d_dealii_iterator_begin))
+    d_dealii_iterator = adjacencies->begin_elem();
+    if (is_artificial(d_dealii_iterator))
         this->operator++();
     d_dealii_iterator_begin = d_dealii_iterator;
+    d_dealii_iterator_end = adjacencies->end_elem();
     this->b_predicate = predicate;
 }
 
@@ -136,14 +130,12 @@ EntityIterator
 DealIIEntityIterator<structdim,dim,spacedim>::
 begin() const
 {
-    return DealIIEntityIterator(
-        d_dealii_iterator_begin,
-        d_dealii_iterator_begin,
-        d_dealii_iterator_end,
+    DealIIEntityIterator it(
         d_adjacencies,
-        this->b_predicate);
+        this->b_predicate );
+    it.d_dealii_iterator = it.d_dealii_iterator_begin;
+    return it;
 }
-
 
 
 template <int structdim,int dim,int spacedim>
@@ -151,14 +143,12 @@ EntityIterator
 DealIIEntityIterator<structdim,dim,spacedim>::
 end() const
 {
-    return DealIIEntityIterator(
-        d_dealii_iterator_end,
-        d_dealii_iterator_begin,
-        d_dealii_iterator_end,
+    DealIIEntityIterator it(
         d_adjacencies,
-        this->b_predicate);
+        this->b_predicate );
+    it.d_dealii_iterator = it.d_dealii_iterator_end;
+    return it;
 }
-
 
 
 template <int structdim,int dim,int spacedim>
@@ -169,6 +159,8 @@ clone() const
     return std::unique_ptr<EntityIterator>(new DealIIEntityIterator(*this));
 }
 
+
+template class DealIIEntityIterator<3,3,3>;
+
 } // end namespace DataTransferKit
 
-#endif

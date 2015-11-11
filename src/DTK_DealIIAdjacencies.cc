@@ -12,10 +12,11 @@ namespace DataTransferKit {
 
 template <int dim,int spacedim>
 DealIIAdjacencies<dim,spacedim>::
-DealIIAdjacencies(Teuchos::RCP<DealIIMesh<dim,spacedim> const> tria)
-  : tria(tria)
-  , local_to_global_vertex_id(dealii::GridTools::compute_local_to_global_vertex_index_map(*tria))
-  , vertex_to_cell(dealii::GridTools::vertex_to_cell_map(*tria))
+DealIIAdjacencies(
+    Teuchos::RCP<DealIIMesh<dim,spacedim> const> const & tria )
+    : tria(tria)
+    , local_to_global_vertex_id(dealii::GridTools::compute_local_to_global_vertex_index_map(*tria))
+    , vertex_to_cell(dealii::GridTools::vertex_to_cell_map(*tria))
 {
     // Reverse the map
     for (auto map_it=local_to_global_vertex_id.cbegin(); 
@@ -115,6 +116,25 @@ getId(DealIIElem<dim,spacedim> const & elem) const
 
     return entity_id;
 }
+
+
+template <int dim,int spacedim>
+DealIIElemIterator<dim,spacedim>
+DealIIAdjacencies<dim,spacedim>::
+begin_elem() const
+{
+    return tria->begin_active();
+}
+
+
+template <int dim,int spacedim>
+DealIIElemIterator<dim,spacedim>
+DealIIAdjacencies<dim,spacedim>::
+end_elem() const
+{
+    return tria->end();
+}
+
 
 template class DealIIAdjacencies<2,2>;
 template class DealIIAdjacencies<2,3>;

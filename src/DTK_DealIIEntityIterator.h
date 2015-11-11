@@ -15,11 +15,8 @@ class DealIIEntityIterator : public EntityIterator
     DealIIEntityIterator();
 
     DealIIEntityIterator(
-        DealIIGeomIterator<structdim,dim,spacedim> dealii_iterator,
-        DealIIGeomIterator<structdim,dim,spacedim> dealii_iterator_begin,
-        DealIIGeomIterator<structdim,dim,spacedim> dealii_iterator_end,
-        Teuchos::Ptr<DealIIAdjacencies<dim,spacedim>> const &adjacencies,
-        PredicateFunction const &predicate );
+        Teuchos::Ptr<DealIIAdjacencies<dim,spacedim> const> const & adjacencies,
+        PredicateFunction const & predicate );
 
     DealIIEntityIterator(DealIIEntityIterator<structdim,dim,spacedim> const &rhs);
 
@@ -46,12 +43,10 @@ class DealIIEntityIterator : public EntityIterator
     DealIIGeomIterator<structdim,dim,spacedim> d_dealii_iterator;
     DealIIGeomIterator<structdim,dim,spacedim> d_dealii_iterator_begin;
     DealIIGeomIterator<structdim,dim,spacedim> d_dealii_iterator_end;
-    Teuchos::Ptr<DealIIAdjacencies<dim,spacedim>> d_adjacencies;
+    Teuchos::Ptr<DealIIAdjacencies<dim,spacedim> const> d_adjacencies;
     Entity d_current_entity;
 };
 
 } // end namespace DataTransferKit
-
-#include "DTK_DealIIEntityIterator_impl.h"
 
 #endif

@@ -58,12 +58,7 @@ entityIterator(
 {
     if (topological_dimension != dim)
         throw std::runtime_error("not implemented");
-    auto iterator_begin = dealii_triangulation->begin_active();
-    auto iterator_end   = dealii_triangulation->end();
     return DealIIEntityIterator<dim,dim,spacedim>(
-        iterator_begin,
-        iterator_begin,
-        iterator_end,
         adjacencies.ptr(),
         predicate );
 }
@@ -98,6 +93,7 @@ description() const
 {
     return std::string("deal.II Mesh");
 }
+
 
 template class DealIIEntitySet<3,3>;
 

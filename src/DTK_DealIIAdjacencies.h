@@ -17,7 +17,7 @@ using Elem = DealIIElem<dim,spacedim>;
 using CellIterator = dealii::TriaActiveIterator<dealii::CellAccessor<dim,spacedim>>;
 using Mesh = DealIIMesh<dim,spacedim>;
 public:
-    DealIIAdjacencies(Teuchos::RCP<Mesh const> dealii_mesh);
+    DealIIAdjacencies(Teuchos::RCP<Mesh const> const & dealii_mesh);
 
     Node getNodeById(EntityId const id) const;
     Elem getElemById(EntityId const id) const;
@@ -25,6 +25,8 @@ public:
     std::pair<Node,std::vector<CellIterator>> getElemAdjacentToNode(EntityId const id) const;
     EntityId getId(Node const & node) const;
     EntityId getId(Elem const & elem) const;
+    DealIIElemIterator<dim,spacedim> begin_elem() const;
+    DealIIElemIterator<dim,spacedim> end_elem() const;
 private:               
     Teuchos::RCP<Mesh const> tria;
     std::map<unsigned int,EntityId> local_to_global_vertex_id;

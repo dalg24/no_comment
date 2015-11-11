@@ -35,9 +35,6 @@ BOOST_AUTO_TEST_CASE( test_DealIIEntitySet )
     auto selectAll = [](DataTransferKit::Entity const &){return true;};
     DataTransferKit::EntityIterator dtk_entity_iterator =
         DataTransferKit::DealIIEntityIterator<dim,dim,spacedim>(
-            dealii_mesh->begin_active(),
-            dealii_mesh->begin_active(),
-            dealii_mesh->end(),
             adjacencies.ptr(),
             selectAll
         );
@@ -78,9 +75,6 @@ BOOST_AUTO_TEST_CASE( test_DealIIEntitySet )
         };
      dtk_entity_iterator =
         DataTransferKit::DealIIEntityIterator<dim,dim,spacedim>(
-            dealii_mesh->begin_active(),
-            dealii_mesh->begin_active(),
-            dealii_mesh->end(),
             adjacencies.ptr(),
             selectLocallyOwned
         );
