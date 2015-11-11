@@ -27,11 +27,11 @@ DealIIEntityIterator(
     PredicateFunction const &predicate)
     : d_adjacencies(adjacencies)
 {
+    d_dealii_iterator_end = adjacencies->end_elem();
     d_dealii_iterator = adjacencies->begin_elem();
     if (is_artificial(d_dealii_iterator))
         this->operator++();
     d_dealii_iterator_begin = d_dealii_iterator;
-    d_dealii_iterator_end = adjacencies->end_elem();
     this->b_predicate = predicate;
 }
 
