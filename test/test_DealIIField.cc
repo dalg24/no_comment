@@ -28,12 +28,6 @@ BOOST_AUTO_TEST_CASE( test_DealIIEntitySet )
         true);
     dealii_mesh->refine_global(2);
 
-//    // We use it to build a dtk entity on top of the element
-//    // adjacencies is a poor choice as for the name
-//    // it will change soon
-//    Teuchos::RCP<DataTransferKit::DealIIAdjacencies<dim,spacedim>> adjacencies =
-//        Teuchos::rcp(new DataTransferKit::DealIIAdjacencies<dim,spacedim>(dealii_mesh));
-
     // Distribute degrees of freedom
     Teuchos::RCP<dealii::DoFHandler<dim,spacedim>> dealii_dof_handler =
         Teuchos::rcp(new dealii::DoFHandler<dim,spacedim>(*dealii_mesh));
@@ -66,35 +60,15 @@ BOOST_AUTO_TEST_CASE( test_DealIIEntitySet )
         std::cout<<id<<"  ";
     std::cout<<"\n";
 
+    BOOST_CHECK_THROW( dtk_field->readFieldData(-1, 1), std::runtime_error );
+    BOOST_CHECK_THROW( dtk_field->writeFieldData(-1, 3, std::nan("")), std::runtime_error );
+
     *dealii_vector = 3.14;
-
-
-
-//    // Get the communicator
-//    auto comm = dtk_entity_set->communicator();
-//    BOOST_ASSERT( world.rank() == comm->getRank() );
-//    BOOST_ASSERT( world.size() == comm->getSize() );
-//
-//    // Check physical dimension
-//    BOOST_ASSERT( dtk_entity_set->physicalDimension() == spacedim );
-//
-//    // Get iterator over the volume elements
-//    DataTransferKit::EntityIterator dtk_entity_iterator =
-//        dtk_entity_set->entityIterator(dim);
-//    int const global_size =
-//        boost::mpi::all_reduce(world, dtk_entity_iterator.size(), std::plus<double>());
-//    BOOST_CHECK_EQUAL( global_size, 1 );
-//
-//    Teuchos::Tuple<double,6> bounding_box;
-//    dtk_entity_set->globalBoundingBox(bounding_box);
-//    BOOST_CHECK_EQUAL( bounding_box[0], -1.0 );
-//    BOOST_CHECK_EQUAL( bounding_box[1], -2.0 );
-//    BOOST_CHECK_EQUAL( bounding_box[2], -3.0 );
-//    BOOST_CHECK_EQUAL( bounding_box[3],  0.0 );
-//    BOOST_CHECK_EQUAL( bounding_box[4],  0.0 );
-//    BOOST_CHECK_EQUAL( bounding_box[5],  0.0 );
-//
-//    // Get adjacencies
-//    Teuchos::Array<DataTransferKit::Entity> adjacent_elem;
+    for (auto const & id : support_ids)
+    {
+        BOOST_CHECK_EQUAL( dtk_field->readFieldData(id, 0), 3.14 );
+        dtk_field->writeFieldData(id, 0, 1.41);
+        BOOST_CHECK_EQUAL( (*dealii_vector)[id], 1.41 );
+    }
 
 }
