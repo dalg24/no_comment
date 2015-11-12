@@ -9,14 +9,11 @@
 
 namespace DataTransferKit {
 
-template <int dim,int spacedim>
 class DealIIField : public Field
 {
 public:
     DealIIField(
-        Teuchos::RCP<dealii::DoFHandler<dim,spacedim> const> const & dof_handler,
-        Teuchos::RCP<DealIIVector> const & vector,
-        unsigned int const & component );
+        Teuchos::RCP<DealIIVector> const & vector );
 
     int dimension() const;
 
@@ -36,12 +33,6 @@ public:
 
     // Deal.II Vector.
     Teuchos::RCP<DealIIVector> d_dealii_vector;
-
-    // Deal.II Degrees of Freedom Handler.
-    Teuchos::RCP<dealii::DoFHandler<dim,spacedim> const> d_dealii_dof_handler;
-
-    // Component in the system of equations.
-    unsigned int d_component;
 
     // The support ids of the entities over which the field is constructed.
     Teuchos::Array<SupportId> d_support_ids;
