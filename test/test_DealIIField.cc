@@ -55,13 +55,18 @@ BOOST_AUTO_TEST_CASE( test_DealIIEntitySet )
     BOOST_CHECK_EQUAL( support_ids.size(), dealii_vector->local_size() );
 
     // Print rank(number of ids) : support ids
-    std::cout<<world.rank()<<" ("<<support_ids.size()<<") :";
+    std::cout<<world.rank()<<" ("<<support_ids.size()<<") : ";
     for (auto const & id : support_ids)
         std::cout<<id<<"  ";
     std::cout<<"\n";
 
+    // Only dimension 0 is allowed
     BOOST_CHECK_THROW( dtk_field->readFieldData(-1, 1), std::runtime_error );
     BOOST_CHECK_THROW( dtk_field->writeFieldData(-1, 3, std::nan("")), std::runtime_error );
+    // Out of range id
+    // After talking with Bruno decided we will let deal.II handle this
+//    BOOST_CHECK_THROW( dtk_field->writeReadData(-1, 0), std::runtime_error );
+//    BOOST_CHECK_THROW( dtk_field->writeFieldData(-1, 0, std::nan("")), std::runtime_error );
 
     *dealii_vector = 3.14;
     for (auto const & id : support_ids)
@@ -70,5 +75,27 @@ BOOST_AUTO_TEST_CASE( test_DealIIEntitySet )
         dtk_field->writeFieldData(id, 0, 1.41);
         BOOST_CHECK_EQUAL( (*dealii_vector)[id], 1.41 );
     }
+
+    // Get ghost degrees of freedom
+    dealii::IndexSet ghost_dofs;
+    ghost_dofs.add_indices(locally_relevant_dofs.begin(), locally_relevant_dofs.end());
+    ghost_dofs.subtract_set(locally_owned_dofs);
+    // Print them
+    std::cout<<world.rank()<<" ("<<ghost_dofs.n_elements()<<") : ";
+    for (auto const & dof : ghost_dofs)
+        std::cout<<dof<<"  ";
+    std::cout<<"\n";
+
+    // Check finalize after write
+    *dealii_vector = -1.0;
+    for (auto const & dof : locally_owned_dofs)
+        dtk_field->writeFieldData(dof, 0, static_cast<double>(world.rank()));
+    dtk_field->finalizeAfterWrite();
+    for (auto const & dof : ghost_dofs)
+    {
+        BOOST_CHECK( dtk_field->readFieldData(dof, 0) != -1.0 );
+        BOOST_CHECK( dtk_field->readFieldData(dof, 0) != static_cast<double>(world.rank()) );
+    }
+
 
 }
