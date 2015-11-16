@@ -136,6 +136,24 @@ end_elem() const
 }
 
 
+template <int dim,int spacedim>
+DealIINodeIterator<dim,spacedim>
+DealIIAdjacencies<dim,spacedim>::
+begin_node() const
+{
+    return tria->begin_active_vertex();
+}
+
+
+template <int dim,int spacedim>
+DealIINodeIterator<dim,spacedim>
+DealIIAdjacencies<dim,spacedim>::
+end_node() const
+{
+    return tria->end_vertex();
+}
+
+
 template class DealIIAdjacencies<2,2>;
 template class DealIIAdjacencies<2,3>;
 template class DealIIAdjacencies<3,3>;

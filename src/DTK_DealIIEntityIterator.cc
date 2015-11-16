@@ -4,14 +4,69 @@
 
 namespace DataTransferKit {
 
-// check whether cell is neither locally owned nor ghost
-template <int dim,int spacedim>
-bool is_artificial(DealIIElemIterator<dim,spacedim> const & tria_iterator)
+namespace internal {
+
+template <int structdim,int dim,int spacedim>
+struct
+EntityIterator
 {
-    dealii::CellAccessor<dim,spacedim> cell_accessor(*tria_iterator);
-    return ( cell_accessor.subdomain_id() ==
-        dealii::numbers::artificial_subdomain_id );
-}
+    static bool is_artificial(DealIIGeomIterator<structdim,dim,spacedim> const & tria_iterator);
+    static DealIIGeomIterator<structdim,dim,spacedim>
+    get_begin(Teuchos::Ptr<DealIIAdjacencies<dim,spacedim> const> const & adjacencies);
+    static DealIIGeomIterator<structdim,dim,spacedim>
+    get_end(Teuchos::Ptr<DealIIAdjacencies<dim,spacedim> const> const & adjacencies);
+
+};
+
+template <int dim,int spacedim>
+struct
+EntityIterator<dim,dim,spacedim>
+{
+    static bool is_artificial(DealIIGeomIterator<dim,dim,spacedim> const & tria_iterator)
+    {
+        dealii::CellAccessor<dim,spacedim> cell_accessor(*tria_iterator);
+        return ( cell_accessor.subdomain_id() ==
+            dealii::numbers::artificial_subdomain_id );
+    }
+
+    static DealIIGeomIterator<dim,dim,spacedim>
+    get_begin(Teuchos::Ptr<DealIIAdjacencies<dim,spacedim> const> const & adjacencies)
+    {
+        return adjacencies->begin_elem();
+    }
+
+    static DealIIGeomIterator<dim,dim,spacedim>
+    get_end(Teuchos::Ptr<DealIIAdjacencies<dim,spacedim> const> const & adjacencies)
+    {
+        return adjacencies->end_elem();
+    }
+
+};
+
+template <int dim,int spacedim>
+struct
+EntityIterator<0,dim,spacedim>
+{
+    static bool is_artificial(DealIIGeomIterator<0,dim,spacedim> const & tria_iterator)
+    {
+        std::ignore = tria_iterator;
+        return false;
+    }
+
+    static DealIIGeomIterator<0,dim,spacedim>
+    get_begin(Teuchos::Ptr<DealIIAdjacencies<dim,spacedim> const> const & adjacencies)
+    {
+        return adjacencies->begin_node();
+    }
+
+    static DealIIGeomIterator<0,dim,spacedim>
+    get_end(Teuchos::Ptr<DealIIAdjacencies<dim,spacedim> const> const & adjacencies)
+    {
+        return adjacencies->end_node();
+    }
+};
+
+} // end namespace internal
 
 
 template <int structdim,int dim,int spacedim>
@@ -27,9 +82,9 @@ DealIIEntityIterator(
     PredicateFunction const &predicate)
     : d_adjacencies(adjacencies)
 {
-    d_dealii_iterator_end = adjacencies->end_elem();
-    d_dealii_iterator = adjacencies->begin_elem();
-    if (is_artificial(d_dealii_iterator))
+    d_dealii_iterator_end = internal::EntityIterator<structdim,dim,spacedim>::get_end(d_adjacencies);
+    d_dealii_iterator = internal::EntityIterator<structdim,dim,spacedim>::get_begin(d_adjacencies);
+    if (internal::EntityIterator<structdim,dim,spacedim>::is_artificial(d_dealii_iterator))
         this->operator++();
     d_dealii_iterator_begin = d_dealii_iterator;
     this->b_predicate = predicate;
@@ -76,7 +131,7 @@ operator++()
 {
     ++d_dealii_iterator;
     while ((d_dealii_iterator != d_dealii_iterator_end) &&
-        is_artificial(d_dealii_iterator))
+        internal::EntityIterator<structdim,dim,spacedim>::is_artificial(d_dealii_iterator))
         ++d_dealii_iterator;
 
     return *this;
@@ -160,6 +215,8 @@ clone() const
 }
 
 
+// @Bruno: uncomment the following line
+//template class DealIIEntityIterator<0,3,3>;
 template class DealIIEntityIterator<3,3,3>;
 
 } // end namespace DataTransferKit

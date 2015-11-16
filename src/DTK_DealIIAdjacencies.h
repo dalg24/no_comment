@@ -27,6 +27,8 @@ public:
     EntityId getId(Elem const & elem) const;
     DealIIElemIterator<dim,spacedim> begin_elem() const;
     DealIIElemIterator<dim,spacedim> end_elem() const;
+    DealIINodeIterator<dim,spacedim> begin_node() const;
+    DealIINodeIterator<dim,spacedim> end_node() const;
 private:               
     Teuchos::RCP<Mesh const> tria;
     std::map<unsigned int,EntityId> local_to_global_vertex_id;
