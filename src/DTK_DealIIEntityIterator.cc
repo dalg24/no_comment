@@ -22,8 +22,11 @@ template <int dim,int spacedim>
 struct
 EntityIterator<dim,dim,spacedim>
 {
-    static bool is_artificial(DealIIGeomIterator<dim,dim,spacedim> const & tria_iterator)
+    static bool is_artificial(
+        DealIIGeomIterator<dim,dim,spacedim> const & tria_iterator,
+        Teuchos::Ptr<DealIIAdjacencies<dim,spacedim> const> const & adjacencies )
     {
+        std::ignore = adjacencies;
         dealii::CellAccessor<dim,spacedim> cell_accessor(*tria_iterator);
         return ( cell_accessor.subdomain_id() ==
             dealii::numbers::artificial_subdomain_id );
@@ -47,9 +50,18 @@ template <int dim,int spacedim>
 struct
 EntityIterator<0,dim,spacedim>
 {
-    static bool is_artificial(DealIIGeomIterator<0,dim,spacedim> const & tria_iterator)
+    static bool is_artificial(
+        DealIIGeomIterator<0,dim,spacedim> const & tria_iterator,
+        Teuchos::Ptr<DealIIAdjacencies<dim,spacedim> const> const & adjacencies )
     {
-        std::ignore = tria_iterator;
+        // TODO: this is a ugly
+        // it would be better to have an non throwing function member in
+        // adjacencies that can determine if the node exists in the map
+        try {
+            adjacencies->getId(*tria_iterator);
+        } catch (std::runtime_error) {
+            return true;
+        }
         return false;
     }
 
@@ -84,7 +96,7 @@ DealIIEntityIterator(
 {
     d_dealii_iterator_end = internal::EntityIterator<structdim,dim,spacedim>::get_end(d_adjacencies);
     d_dealii_iterator = internal::EntityIterator<structdim,dim,spacedim>::get_begin(d_adjacencies);
-    if (internal::EntityIterator<structdim,dim,spacedim>::is_artificial(d_dealii_iterator))
+    if (internal::EntityIterator<structdim,dim,spacedim>::is_artificial(d_dealii_iterator, d_adjacencies))
         this->operator++();
     d_dealii_iterator_begin = d_dealii_iterator;
     this->b_predicate = predicate;
@@ -131,7 +143,7 @@ operator++()
 {
     ++d_dealii_iterator;
     while ((d_dealii_iterator != d_dealii_iterator_end) &&
-        internal::EntityIterator<structdim,dim,spacedim>::is_artificial(d_dealii_iterator))
+        internal::EntityIterator<structdim,dim,spacedim>::is_artificial(d_dealii_iterator, d_adjacencies))
         ++d_dealii_iterator;
 
     return *this;
