@@ -38,12 +38,25 @@ BOOST_AUTO_TEST_CASE( test_DealIIEntitySet )
     BOOST_ASSERT( dtk_entity_set->physicalDimension() == spacedim );
 
     // Get iterator over the volume elements
-    DataTransferKit::EntityIterator dtk_entity_iterator =
+    DataTransferKit::EntityIterator dtk_elem_iterator =
         dtk_entity_set->entityIterator(dim);
     int const global_size =
-        boost::mpi::all_reduce(world, dtk_entity_iterator.size(), std::plus<double>());
+        boost::mpi::all_reduce(world, dtk_elem_iterator.size(), std::plus<double>());
     BOOST_CHECK_EQUAL( global_size, 1 );
 
+    // Get iterator over the surface nodes
+    int const rank = world.rank();
+    int const boundary_id = 0;
+    DataTransferKit::PredicateFunction onBoundaryAndLocal =
+        [rank,boundary_id](DataTransferKit::Entity const & entity)
+        { return entity.onBoundary(boundary_id) && (entity.ownerRank() == rank); };
+    DataTransferKit::EntityIterator dtk_node_iterator =
+        dtk_entity_set->entityIterator(0, onBoundaryAndLocal);
+    BOOST_CHECK_EQUAL(
+        boost::mpi::all_reduce(world, dtk_node_iterator.size(), std::plus<double>()),
+        4 );
+
+    // Check the bounding box
     double const tolerance = 1.0e-15;
     Teuchos::Tuple<double,6> bounding_box;
     dtk_entity_set->globalBoundingBox(bounding_box);
