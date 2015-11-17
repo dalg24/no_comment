@@ -64,6 +64,7 @@ ADD_LIBRARY(no_comment
     src/DTK_DealIIEntityIterator.cc
     src/DTK_DealIIEntitySet.cc
     src/DTK_DealIIEntityShapeFunction.cc
+    src/DTK_DealIIEntityIntegrationRule.cc
     src/DTK_DealIIField.cc
     )
 #SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
