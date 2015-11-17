@@ -44,14 +44,15 @@ BOOST_AUTO_TEST_CASE( test_DealIIEntitySet )
         boost::mpi::all_reduce(world, dtk_entity_iterator.size(), std::plus<double>());
     BOOST_CHECK_EQUAL( global_size, 1 );
 
+    double const tolerance = 1.0e-15;
     Teuchos::Tuple<double,6> bounding_box;
     dtk_entity_set->globalBoundingBox(bounding_box);
-    BOOST_CHECK_EQUAL( bounding_box[0], -1.0 );
-    BOOST_CHECK_EQUAL( bounding_box[1], -2.0 );
-    BOOST_CHECK_EQUAL( bounding_box[2], -3.0 );
-    BOOST_CHECK_EQUAL( bounding_box[3],  0.0 );
-    BOOST_CHECK_EQUAL( bounding_box[4],  0.0 );
-    BOOST_CHECK_EQUAL( bounding_box[5],  0.0 );
+    BOOST_CHECK_SMALL( -1.0 - bounding_box[0], tolerance );
+    BOOST_CHECK_SMALL( -2.0 - bounding_box[1], tolerance );
+    BOOST_CHECK_SMALL( -3.0 - bounding_box[2], tolerance );
+    BOOST_CHECK_SMALL(  0.0 - bounding_box[3], tolerance );
+    BOOST_CHECK_SMALL(  0.0 - bounding_box[4], tolerance );
+    BOOST_CHECK_SMALL(  0.0 - bounding_box[5], tolerance );
 
     // Get adjacencies
     Teuchos::Array<DataTransferKit::Entity> adjacent_elem;

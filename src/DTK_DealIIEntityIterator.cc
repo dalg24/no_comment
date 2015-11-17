@@ -215,8 +215,7 @@ clone() const
 }
 
 
-// @Bruno: uncomment the following line
-//template class DealIIEntityIterator<0,3,3>;
+template class DealIIEntityIterator<0,3,3>;
 template class DealIIEntityIterator<3,3,3>;
 
 } // end namespace DataTransferKit
