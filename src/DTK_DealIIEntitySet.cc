@@ -56,9 +56,16 @@ entityIterator(
     const int topological_dimension,
     const PredicateFunction& predicate) const
 {
-    return DealIIEntityIterator<dim,dim,spacedim>(
-        adjacencies.ptr(),
-        predicate );
+    if (topological_dimension == dim)
+        return DealIIEntityIterator<dim,dim,spacedim>(
+            adjacencies.ptr(),
+            predicate );
+    else if (topological_dimension == 0)
+        return DealIIEntityIterator<  0,dim,spacedim>(
+            adjacencies.ptr(),
+            predicate );
+    else
+        throw std::runtime_error("not implemented");
 }
 
 
