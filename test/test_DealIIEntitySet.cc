@@ -24,6 +24,10 @@ BOOST_AUTO_TEST_CASE( test_DealIIEntitySet )
         dealii::Point<spacedim>(-1.0, -2.0, -3.0),
         dealii::Point<spacedim>( 0.0,  0.0,  0.0),
         true);
+    int const n = 1;
+    dealii_mesh->refine_global(n);
+    int const elems = 8;
+    int const nodes_per_boundary = 9;
 
     // Create a dtk entity set
     Teuchos::RCP<DataTransferKit::EntitySet> dtk_entity_set =
@@ -38,23 +42,26 @@ BOOST_AUTO_TEST_CASE( test_DealIIEntitySet )
     BOOST_ASSERT( dtk_entity_set->physicalDimension() == spacedim );
 
     // Get iterator over the volume elements
+    int const rank = world.rank();
+    DataTransferKit::PredicateFunction localyOwned =
+        [rank](DataTransferKit::Entity const & entity)
+        { return (entity.ownerRank() == rank); };
     DataTransferKit::EntityIterator dtk_elem_iterator =
-        dtk_entity_set->entityIterator(dim);
-    int const global_size =
-        boost::mpi::all_reduce(world, dtk_elem_iterator.size(), std::plus<double>());
-    BOOST_CHECK_EQUAL( global_size, 1 );
+        dtk_entity_set->entityIterator(dim, localyOwned);
+    BOOST_CHECK_EQUAL(
+        boost::mpi::all_reduce(world, dtk_elem_iterator.size(), std::plus<size_t>()),
+        elems );
 
     // Get iterator over the surface nodes
-    int const rank = world.rank();
     int const boundary_id = 0;
-    DataTransferKit::PredicateFunction onBoundaryAndLocal =
+    DataTransferKit::PredicateFunction onBoundaryAndLocalyOwned =
         [rank,boundary_id](DataTransferKit::Entity const & entity)
         { return entity.onBoundary(boundary_id) && (entity.ownerRank() == rank); };
     DataTransferKit::EntityIterator dtk_node_iterator =
-        dtk_entity_set->entityIterator(0, onBoundaryAndLocal);
+        dtk_entity_set->entityIterator(0, onBoundaryAndLocalyOwned);
     BOOST_CHECK_EQUAL(
-        boost::mpi::all_reduce(world, dtk_node_iterator.size(), std::plus<double>()),
-        4 );
+        boost::mpi::all_reduce(world, dtk_node_iterator.size(), std::plus<size_t>()),
+        nodes_per_boundary );
 
     // Check the bounding box
     double const tolerance = 1.0e-15;
