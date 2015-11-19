@@ -78,10 +78,8 @@ BOOST_AUTO_TEST_CASE( test_DealIIEntitySet )
 
     // Get ghost degrees of freedom
     dealii::IndexSet ghost_dofs;
-    ghost_dofs.add_indices(locally_relevant_dofs);
-    // NOTE: I replaced that line that was throwing but not sure why
-//    ghost_dofs.add_indices(locally_relevant_dofs.begin(), locally_relevant_dofs.end());
-    // TODO: following line throws
+    ghost_dofs.set_size(dealii_dof_handler->n_dofs());
+    ghost_dofs.add_indices(locally_relevant_dofs.begin(), locally_relevant_dofs.end());
     ghost_dofs.subtract_set(locally_owned_dofs);
     // Print them
     std::cout<<world.rank()<<" ("<<ghost_dofs.n_elements()<<") : ";
