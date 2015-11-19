@@ -1,0 +1,14 @@
+SET(BOOST_ROOT ${BOOST_INSTALL_DIR})
+SET(Boost_NO_SYSTEM_PATHS ON)
+FIND_PACKAGE(Boost 1.55.0 REQUIRED
+    COMPONENTS 
+    unit_test_framework
+    mpi
+    timer
+    serialization
+    chrono
+    )
+MESSAGE("Boost_LIBRARIES=${Boost_LIBRARIES}")
+MESSAGE("Boost_INCLUDE_DIRS=${Boost_INCLUDE_DIRS}")
+INCLUDE_DIRECTORIES(SYSTEM ${Boost_INCLUDE_DIRS})
+
