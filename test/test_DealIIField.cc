@@ -29,10 +29,10 @@ BOOST_AUTO_TEST_CASE( test_DealIIEntitySet )
     dealii_mesh->refine_global(2);
 
     // Distribute degrees of freedom
-    Teuchos::RCP<dealii::DoFHandler<dim,spacedim>> dealii_dof_handler =
-        Teuchos::rcp(new dealii::DoFHandler<dim,spacedim>(*dealii_mesh));
     Teuchos::RCP<dealii::FiniteElement<dim,spacedim>> dealii_fe =
         Teuchos::rcp(new dealii::FE_Q<dim>(1) );
+    Teuchos::RCP<dealii::DoFHandler<dim,spacedim>> dealii_dof_handler =
+        Teuchos::rcp(new dealii::DoFHandler<dim,spacedim>(*dealii_mesh));
     dealii_dof_handler->distribute_dofs(*dealii_fe);
 
     // Build a vector
