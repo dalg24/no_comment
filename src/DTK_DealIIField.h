@@ -15,7 +15,7 @@ public:
     DealIIField(
         Teuchos::RCP<DealIIVector> const & vector );
 
-    int dimension() const;
+    int dimension() const override;
 
     Teuchos::ArrayView<const SupportId>
     getLocalSupportIds() const override;
