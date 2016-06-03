@@ -31,7 +31,7 @@ public:
     DealIINodeIterator<dim,spacedim> end_node() const;
 private:               
     Teuchos::RCP<Mesh const> tria;
-    std::map<unsigned int,EntityId> local_to_global_vertex_id;
+    std::map<unsigned int,unsigned long long int> local_to_global_vertex_id;
     std::unordered_map<EntityId,unsigned int> global_to_local_vertex_id;
     std::unordered_map<EntityId,std::pair<unsigned int,
       unsigned int>> elem_id_to_lvl_index;
